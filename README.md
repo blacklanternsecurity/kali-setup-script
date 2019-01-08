@@ -5,7 +5,7 @@ Prepares Kali by installing common tools such as CrackMapExec and Impacket
 ## One-liner:
 
 ~~~
-curl -k -s | bash
+curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/kali-setup-script.sh | bash
 ~~~
 
 ## Full feature list:
