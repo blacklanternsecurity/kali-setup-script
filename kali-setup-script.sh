@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# bypass prompts in apt-upgrade, etc.
+export DEBIAN_FRONTEND=noninteractive
+
 printf '\n============================================================\n'
 printf '[+] Disabling Auto-lock, Sleep on AC\n'
 printf '============================================================\n\n'
