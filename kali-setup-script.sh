@@ -14,6 +14,11 @@ printf '\n============================================================\n'
 printf '[+] Removing the abomination that is gnome-software\n'
 printf '============================================================\n\n'
 killall gnome-software
+while true
+do
+	pgrep gnome-software &>/dev/null || break
+	sleep .5
+done
 apt-get -y remove gnome-software
 
 
