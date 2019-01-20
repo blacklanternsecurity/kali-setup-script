@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# bypass prompts in apt-upgrade, etc.
+# skip prompts in apt-upgrade, etc.
 export DEBIAN_FRONTEND=noninteractive
 
 printf '\n============================================================\n'
@@ -13,6 +13,7 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'no
 printf '\n============================================================\n'
 printf '[+] Removing the abomination that is gnome-software\n'
 printf '============================================================\n\n'
+killall gnome-software
 apt-get -y remove gnome-software
 
 
