@@ -26,3 +26,5 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 1. Disables auto-lock
 1. Enables tap-to-click
 1. Initializes Metasploit database
+1. Installs rad BLS wallpaper
+1. Cleans up favorites menu
