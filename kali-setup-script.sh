@@ -26,8 +26,14 @@ printf '\n============================================================\n'
 printf '[+] Setting Wallpaper\n'
 printf '============================================================\n\n'
 wallpaper_file="$(find . -name bls_wallpaper.png)"
+if [[ -z "$wallpaper_file" ]]
+then
+	wget https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+	wallpaper_file="$(find . -name bls_wallpaper.png)"
+fi
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/'
+echo 
 gsettings set org.gnome.desktop.background primary-color "#000000"
 gsettings set org.gnome.desktop.background secondary-color "#000000"
 gsettings set org.gnome.desktop.background color-shading-type "solid"

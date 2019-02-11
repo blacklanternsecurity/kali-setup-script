@@ -18,7 +18,7 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 	1. CrackMapExec (from GitHub)
 	1. Impacket (from GitHub)
 	1. patator (network brute-force tool)
-	1. Firefox (from tarball)
+	1. Firefox (official non-ESR version)
 	1. Chromium
 	1. Sublime Text
 	1. golang
