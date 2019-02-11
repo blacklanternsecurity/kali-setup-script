@@ -1,6 +1,6 @@
 # kali-setup-script
 
-Prepares Kali by installing common tools such as CrackMapExec and Impacket
+Prepares Kali for a pentest by enabling session logging, installing tools, and making common configuration changes
 
 <img src="https://i.imgur.com/pXh7AUu.png" width=500>
 
