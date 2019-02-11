@@ -112,8 +112,8 @@ sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /u
 printf '\n============================================================\n'
 printf '[+] Installing CrackMapExec\n'
 printf '============================================================\n\n'
-rm -r $(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)
-rm -r /opt/CrackMapExec
+rm -r $(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1) &>/dev/null
+rm -r /opt/CrackMapExec &>/dev/null
 apt-get install -y libssl-dev libffi-dev python-dev build-essential
 pip install pipenv
 cd /opt
@@ -130,8 +130,8 @@ apt-get -y install crackmapexec
 printf '\n============================================================\n'
 printf '[+] Installing Impacket\n'
 printf '============================================================\n\n'
-rm -r $(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)
-rm -r /opt/impacket
+rm -r $(ls /root/.local/share/virtualenvs | grep impacket | head -n 1) &>/dev/null
+rm -r /opt/impacket &>/dev/null
 cd /opt
 git clone https://github.com/CoreSecurity/impacket.git
 cd impacket && pipenv install

@@ -5,7 +5,7 @@ Prepares Kali for a pentest by enabling session logging, installing tools, and m
 <img src="https://i.imgur.com/pXh7AUu.png" width=500>
 
 ## One-liner:
-
+(don't forget to reboot after the script finishes :)
 ~~~
 curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/kali-setup-script.sh | bash
 ~~~
