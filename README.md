@@ -2,7 +2,7 @@
 
 Prepares Kali by installing common tools such as CrackMapExec and Impacket
 
-![Rad BLS Wallpaper](https://imgur.com/fVhCexz "Rad BLS Wallpaper")
+![Rad BLS Wallpaper](https://i.imgur.com/pXh7AUu.png "Rad BLS Wallpaper")
 
 ## One-liner:
 
