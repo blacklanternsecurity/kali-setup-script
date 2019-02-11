@@ -2,7 +2,7 @@
 
 Prepares Kali by installing common tools such as CrackMapExec and Impacket
 
-<img src="https://i.imgur.com/pXh7AUu.png" width=200px>
+<img src="https://i.imgur.com/pXh7AUu.png" width=500>
 
 ## One-liner:
 
