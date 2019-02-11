@@ -132,6 +132,22 @@ apt-get -y install sublime-text
 
 
 printf '\n============================================================\n'
+printf '[+] Enabling bash session logging\n'
+printf '============================================================\n\n'
+grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
+        logdir=$HOME/terminal-logs
+        if [ ! -d $logdir ]; then
+                mkdir $logdir
+        fi
+        gzip -q $logdir/*.log &>/dev/null
+        logfile=$logdir/$(date +%F_%T).$$.log
+        export UNDER_SCRIPT=$logfile
+        script -f -q $logfile
+        exit
+fi' >> ~/.bashrc
+
+
+printf '\n============================================================\n'
 printf '[+] Disabling Animations\n'
 printf '============================================================\n\n'
 gsettings set org.gnome.desktop.interface enable-animations false
