@@ -23,6 +23,17 @@ apt-get -y remove gnome-software
 
 
 printf '\n============================================================\n'
+printf '[+] Setting Wallpaper\n'
+printf '============================================================\n\n'
+wallpaper_file="$(find . -name bls_wallpaper.png)"
+mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
+cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/'
+gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+gsettings set org.gnome.desktop.background picture-options scaled
+
+
+printf '\n============================================================\n'
 printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
 printf '     - golang\n'
@@ -185,6 +196,7 @@ printf '============================================================\n\n'
 apt-get -y autoremove
 apt-get -y autoclean
 updatedb
+gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'sublime_text.desktop']"
 
 
 printf '\n============================================================\n'
