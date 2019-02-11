@@ -2,7 +2,7 @@
 
 Prepares Kali by installing common tools such as CrackMapExec and Impacket
 
-<img src="https://imgur.com/fVhCexz">
+![Rad BLS Wallpaper](https://imgur.com/fVhCexz "Rad BLS Wallpaper")
 
 ## One-liner:
 
@@ -12,7 +12,7 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 
 ## Full feature list:
 
-1. Saves record of all terminal sessions
+1. Saves record of terminal sessions
 	- Including ALL OUTPUT (saved to ~/Logs)
 1. Installs the following:
 	1. CrackMapExec (from GitHub)
@@ -32,4 +32,3 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 1. Initializes Metasploit database
 1. Installs rad BLS wallpaper
 1. Cleans up favorites menu
-1. 
