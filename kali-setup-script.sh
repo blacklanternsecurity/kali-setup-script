@@ -30,7 +30,7 @@ mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/'
 gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
 gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.background picture-options scaled
+gsettings set org.gnome.desktop.background picture-options wallpaper
 
 
 printf '\n============================================================\n'
