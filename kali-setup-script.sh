@@ -28,9 +28,12 @@ printf '============================================================\n\n'
 wallpaper_file="$(find . -name bls_wallpaper.png)"
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/'
+gsettings set org.gnome.desktop.background primary-color "#000000"
+gsettings set org.gnome.desktop.background secondary-color "#000000"
+gsettings set org.gnome.desktop.background color-shading-type "solid"
 gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
 gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.background picture-options wallpaper
+gsettings set org.gnome.desktop.background picture-options scaled
 
 
 printf '\n============================================================\n'
@@ -113,7 +116,7 @@ cd CrackMapExec && pipenv install
 python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cme /usr/bin/cme
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
-ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Desktop/crackmapexec_bleeding_edge
+ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Downloads/crackmapexec_bleeding_edge
 cd / && rm -r /opt/CrackMapExec
 apt-get -y install crackmapexec
 
@@ -128,7 +131,7 @@ git clone https://github.com/CoreSecurity/impacket.git
 cd impacket && pipenv install
 python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin/*.py /usr/bin/
-ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin ~/Desktop/impacket_bleeding_edge
+ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin ~/Downloads/impacket_bleeding_edge
 cd / && rm -r /opt/impacket
 
 
@@ -146,7 +149,7 @@ printf '\n============================================================\n'
 printf '[+] Enabling bash session logging\n'
 printf '============================================================\n\n'
 grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
-        logdir=$HOME/terminal-logs
+        logdir=$HOME/Logs
         if [ ! -d $logdir ]; then
                 mkdir $logdir
         fi
@@ -187,7 +190,7 @@ printf '\n============================================================\n'
 printf '[+] Unzipping RockYou\n'
 printf '============================================================\n\n'
 gunzip /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
-ln -s /usr/share/wordlists ~/Desktop/wordlists 2>/dev/null
+ln -s /usr/share/wordlists ~/Downloads/wordlists 2>/dev/null
 
 
 printf '\n============================================================\n'
@@ -196,7 +199,8 @@ printf '============================================================\n\n'
 apt-get -y autoremove
 apt-get -y autoclean
 updatedb
-gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'sublime_text.desktop']"
+rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
+gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'sublime_text.desktop']"
 
 
 printf '\n============================================================\n'
