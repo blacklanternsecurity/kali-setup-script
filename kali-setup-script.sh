@@ -8,6 +8,10 @@ printf '[+] Disabling Auto-lock, Sleep on AC\n'
 printf '============================================================\n\n'
 gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+# disable menus in gnome terminal
+gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
+# disable "close terminal?" prompt
+gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
 
 
 printf '\n============================================================\n'
@@ -16,8 +20,8 @@ printf '============================================================\n\n'
 killall gnome-software
 while true
 do
-	pgrep gnome-software &>/dev/null || break
-	sleep .5
+    pgrep gnome-software &>/dev/null || break
+    sleep .5
 done
 apt-get -y remove gnome-software
 
@@ -29,9 +33,9 @@ mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
 if [[ -z "$wallpaper_file" ]]
 then
-	wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+    wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
 else
-	cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+    cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
 fi
 gsettings set org.gnome.desktop.background primary-color "#000000"
 gsettings set org.gnome.desktop.background secondary-color "#000000"
@@ -39,6 +43,43 @@ gsettings set org.gnome.desktop.background color-shading-type "solid"
 gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
 gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
 gsettings set org.gnome.desktop.background picture-options scaled
+
+
+printf '\n============================================================\n'
+printf '[+] Installing i3\n'
+printf '============================================================\n\n'
+# install dependencies
+apt-get -y install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
+cd /opt
+git clone https://github.com/csxr/i3-gnome
+cd i3-gnome
+make install
+# set up config
+grep '### KALI SETUP SCRIPT ###' /etc/i3/config || echo '
+### KALI SETUP SCRIPT ###
+# gnome settings daemon
+exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
+# gnome power manager
+exec_always --no-startup-id gnome-power-manager
+# polkit-gnome
+exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+# gnome flashback
+exec --no-startup-id gnome-flashback
+
+# BLS theme
+# class             border  background  text        indicator   child_border
+client.focused      #FFFFFF #FFFFFF     #000000     #000000     #FFFFFF
+exec --no-startup-id feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+' >> /etc/i3/config.keycodes
+
+# gnome terminal
+sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
+# improved dmenu
+sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
+# mod+shift+e logs out of gnome
+sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec gnome-session-quit/g' /etc/i3/config.keycodes
+# hack font
+sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
@@ -52,15 +93,15 @@ printf '     - patator\n'
 printf '     - zmap\n'
 printf '============================================================\n\n'
 apt-get -y install \
-	realtek-rtl88xxau-dkms \
-	golang \
-	gnome-screenshot \
-	terminator \
-	python-pip \
-	python3-dev \
-	python3-pip \
-	patator \
-	zmap
+    realtek-rtl88xxau-dkms \
+    golang \
+    gnome-screenshot \
+    terminator \
+    python-pip \
+    python3-dev \
+    python3-pip \
+    patator \
+    zmap
 
 
 printf '\n============================================================\n'
@@ -75,14 +116,14 @@ printf '[+] Installing Firefox\n'
 printf '============================================================\n\n'
 if [[ ! -f /usr/share/applications/firefox.desktop ]]
 then
-	wget -O /tmp/firefox.tar.bz2 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
-	cd /opt
-	tar -xvjf /tmp/firefox.tar.bz2
-	if [[ -f /usr/bin/firefox ]]; then mv /usr/bin/firefox /usr/bin/firefox.bak; fi
-	ln -s /opt/firefox/firefox /usr/bin/firefox
-	rm /tmp/firefox.tar.bz2
+    wget -O /tmp/firefox.tar.bz2 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
+    cd /opt
+    tar -xvjf /tmp/firefox.tar.bz2
+    if [[ -f /usr/bin/firefox ]]; then mv /usr/bin/firefox /usr/bin/firefox.bak; fi
+    ln -s /opt/firefox/firefox /usr/bin/firefox
+    rm /tmp/firefox.tar.bz2
 
-	cat <<EOF > /usr/share/applications/firefox.desktop
+    cat <<EOF > /usr/share/applications/firefox.desktop
 [Desktop Entry]
 Name=Firefox
 Comment=Browse the World Wide Web
@@ -158,7 +199,7 @@ grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
         if [ ! -d $logdir ]; then
                 mkdir $logdir
         fi
-        gzip -q $logdir/*.log &>/dev/null
+        #gzip -q $logdir/*.log &>/dev/null
         logfile=$logdir/$(date +%F_%T).$$.log
         export UNDER_SCRIPT=$logfile
         script -f -q $logfile
