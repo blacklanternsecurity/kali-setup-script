@@ -246,7 +246,7 @@ apt-get -y autoremove
 apt-get -y autoclean
 updatedb
 rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
-gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'sublime_text.desktop']"
+gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop']"
 
 
 printf '\n============================================================\n'
