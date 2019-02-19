@@ -1,4 +1,4 @@
-# kali-setup-script
+# Kali Setup Script
 
 Prepares Kali for a pentest by enabling session logging, installing tools, and making common configuration changes
 
