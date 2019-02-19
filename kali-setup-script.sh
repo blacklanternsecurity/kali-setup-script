@@ -27,8 +27,10 @@ apt-get -y remove gnome-software
 
 
 printf '\n============================================================\n'
-printf '[+] Setting Wallpaper\n'
+printf '[+] Setting Theme\n'
 printf '============================================================\n\n'
+# Kali dark theme
+gsettings set org.gnome.desktop.interface gtk-theme 'Kali-X-Dark'
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
 if [[ -z "$wallpaper_file" ]]
