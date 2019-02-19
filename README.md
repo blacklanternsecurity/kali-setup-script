@@ -2,7 +2,8 @@
 
 Prepares Kali for a pentest by enabling session logging, installing tools, and making common configuration changes
 
-<img src="https://i.imgur.com/pXh7AUu.png" width=500>
+<img alt="Gnome" src="https://i.imgur.com/pXh7AUu.png" width=500>
+<img alt="i3 + Gnome" src="https://i.imgur.com/DEEJhvO.png" width=400>
 
 ## One-liner:
 (don't forget to reboot after the script finishes :)
@@ -24,6 +25,7 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 	1. golang
 	1. gnome-screenshot
 	1. realtek-rtl88xxau-dkms (ALFA wireless drivers)
+	1. i3 + Gnome desktop environment
 1. Updates system
 1. Removes gnome-software
 1. Disables animations
