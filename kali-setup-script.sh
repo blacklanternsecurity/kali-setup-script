@@ -70,7 +70,7 @@ exec --no-startup-id gnome-flashback
 
 # BLS theme
 # class             border  background  text        indicator   child_border
-client.focused      #FFFFFF #FFFFFF     #000000     #000000     #FFFFFF
+client.focused      #444444 #444444     #FFFFFF     #FFFFFF     #444444
 exec --no-startup-id feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 ' >> /etc/i3/config.keycodes
 
