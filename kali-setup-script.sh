@@ -30,7 +30,7 @@ printf '\n============================================================\n'
 printf '[+] Setting Theme\n'
 printf '============================================================\n\n'
 # Kali dark theme
-gsettings set org.gnome.desktop.interface gtk-theme 'Kali-X-Dark'
+gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
 if [[ -z "$wallpaper_file" ]]
@@ -82,6 +82,9 @@ sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dme
 sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec gnome-session-quit/g' /etc/i3/config.keycodes
 # hack font
 sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
+# focus child
+sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
+sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
@@ -93,6 +96,7 @@ printf '     - terminator\n'
 printf '     - pip\n'
 printf '     - patator\n'
 printf '     - zmap\n'
+printf '     - htop\n'
 printf '============================================================\n\n'
 apt-get -y install \
     realtek-rtl88xxau-dkms \
@@ -103,7 +107,8 @@ apt-get -y install \
     python3-dev \
     python3-pip \
     patator \
-    zmap
+    zmap \
+    htop
 
 
 printf '\n============================================================\n'
@@ -149,6 +154,17 @@ printf '[+] Installing Chromium\n'
 printf '============================================================\n\n'
 apt-get install -y chromium
 sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
+
+
+printf '\n============================================================\n'
+printf '[+] Installing Bloodhound\n'
+printf '============================================================\n\n'
+mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
+grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  40000
+root   hard    nofile  60000' >> /etc/security/limits.conf
+grep 'NEO4J_ULIMIT_NOFILE=60000' /etc/default/neo4j 2>/dev/null || echo 'NEO4J_ULIMIT_NOFILE=60000' >> /etc/default/neo4j
+apt-get install -y bloodhound
+neo4j start
 
 
 printf '\n============================================================\n'
@@ -224,6 +240,8 @@ gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
 printf '\n============================================================\n'
 printf '[+] Initializing Metasploit Database\n'
 printf '============================================================\n\n'
+systemctl start postgresql
+systemctl enable postgresql
 msfdb init
 
 
