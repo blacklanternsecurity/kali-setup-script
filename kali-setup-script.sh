@@ -221,16 +221,13 @@ apt-get -y update
 apt-get -y install sublime-text
 
 
-
 printf '\n============================================================\n'
 printf '[+] Installing BoostNote\n'
 printf '============================================================\n\n'
 boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
-wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
-apt-get -y install apt-transport-https
-echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
-apt-get -y update
-apt-get -y install sublime-text
+cd ~/Downloads
+wget -O boostnote.deb "$boost_deb_url"
+dpkg -i boostnote.deb
 
 
 printf '\n============================================================\n'
