@@ -90,13 +90,14 @@ sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3
 printf '\n============================================================\n'
 printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
-printf '     - golang\n'
+printf '     - golang & environment\n'
 printf '     - gnome-screenshot\n'
 printf '     - terminator\n'
-printf '     - pip\n'
+printf '     - pip & pipenv\n'
 printf '     - patator\n'
 printf '     - zmap\n'
 printf '     - htop\n'
+printf '     - NFS server\n'
 printf '============================================================\n\n'
 apt-get -y install \
     realtek-rtl88xxau-dkms \
@@ -108,7 +109,18 @@ apt-get -y install \
     python3-pip \
     patator \
     zmap \
-    htop
+    htop \
+    nfs-kernel-server
+python2 -m pip install pipenv
+python3 -m pip install pipenv
+mkdir -p /root/go
+gopath_exp='export GOPATH="$HOME/.go"'
+path_exp='export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"'
+sed -i '/export GOPATH=.*/c\' ~/.profile
+sed -i '/export PATH=.*GOPATH.*/c\' ~/.profile
+echo $gopath_exp | tee -a "$HOME/.profile"
+grep -q -F "$path_exp" "$HOME/.profile" || echo $path_exp | tee -a "$HOME/.profile"
+. "$HOME/.profile"
 
 
 printf '\n============================================================\n'
@@ -202,6 +214,18 @@ cd / && rm -r /opt/impacket
 printf '\n============================================================\n'
 printf '[+] Installing Sublime Text\n'
 printf '============================================================\n\n'
+wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
+apt-get -y install apt-transport-https
+echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
+apt-get -y update
+apt-get -y install sublime-text
+
+
+
+printf '\n============================================================\n'
+printf '[+] Installing BoostNote\n'
+printf '============================================================\n\n'
+boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
 apt-get -y install apt-transport-https
 echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
