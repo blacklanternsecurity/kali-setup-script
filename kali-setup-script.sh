@@ -122,6 +122,15 @@ echo $gopath_exp | tee -a "$HOME/.profile"
 grep -q -F "$path_exp" "$HOME/.profile" || echo $path_exp | tee -a "$HOME/.profile"
 . "$HOME/.profile"
 
+# enable NFS server (without any shares)
+systemctl enable nfs-server
+systemctl start nfs-server
+fgrep '1.1.1.1/255.255.255.255(rw,sync)' /etc/exports &>/dev/null || echo '#/root        1.1.1.1/255.255.255.255(rw,sync,all_squash,anongid=0,anonuid=0)' >> /etc/exports
+exportfs -a
+
+# example NetworkManager.conf line for blacklist interfaces
+fgrep 'unmanaged-devices' &>/dev/null /etc/NetworkManager/NetworkManager.conf || echo -e '[keyfile]\nunmanaged-devices=mac:de:ad:be:ef:de:ad' >> /etc/NetworkManager/NetworkManager.conf
+
 
 printf '\n============================================================\n'
 printf '[+] Updating System\n'
@@ -188,7 +197,7 @@ apt-get install -y libssl-dev libffi-dev python-dev build-essential
 pip install pipenv
 cd /opt
 git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec
-cd CrackMapExec && pipenv install
+cd CrackMapExec && python2 -m pipenv install
 python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cme /usr/bin/cme
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
@@ -204,7 +213,7 @@ rm -r $(ls /root/.local/share/virtualenvs | grep impacket | head -n 1) &>/dev/nu
 rm -r /opt/impacket &>/dev/null
 cd /opt
 git clone https://github.com/CoreSecurity/impacket.git
-cd impacket && pipenv install
+cd impacket && python2 -m pipenv install
 python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin/*.py /usr/bin/
 ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin ~/Downloads/impacket_bleeding_edge
@@ -227,7 +236,9 @@ printf '============================================================\n\n'
 boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
 cd ~/Downloads
 wget -O boostnote.deb "$boost_deb_url"
+apt-get -y install gconf2 gvfs-bin
 dpkg -i boostnote.deb
+rm boostnote.deb
 
 
 printf '\n============================================================\n'
@@ -287,7 +298,7 @@ apt-get -y autoremove
 apt-get -y autoclean
 updatedb
 rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
-gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop']"
+gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
 
 
 printf '\n============================================================\n'
