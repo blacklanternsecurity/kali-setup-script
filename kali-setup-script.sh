@@ -125,7 +125,7 @@ grep -q -F "$path_exp" "$HOME/.profile" || echo $path_exp | tee -a "$HOME/.profi
 # enable NFS server (without any shares)
 systemctl enable nfs-server
 systemctl start nfs-server
-fgrep '1.1.1.1/255.255.255.255(rw,sync)' /etc/exports &>/dev/null || echo '#/root        1.1.1.1/255.255.255.255(rw,sync,all_squash,anongid=0,anonuid=0)' >> /etc/exports
+fgrep '1.1.1.1/255.255.255.255(rw,sync,all_squash,anongid=0,anonuid=0)' /etc/exports &>/dev/null || echo '#/root        1.1.1.1/255.255.255.255(rw,sync,all_squash,anongid=0,anonuid=0)' >> /etc/exports
 exportfs -a
 
 # example NetworkManager.conf line for blacklist interfaces
