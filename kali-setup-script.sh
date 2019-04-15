@@ -67,6 +67,8 @@ exec_always --no-startup-id gnome-power-manager
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 # gnome flashback
 exec --no-startup-id gnome-flashback
+# resolution reset
+# exec --no-startup-id xrandr --output eDP-1 --mode 1920x1080
 
 # BLS theme
 # class             border  background  text        indicator   child_border
@@ -95,6 +97,7 @@ printf '     - gnome-screenshot\n'
 printf '     - terminator\n'
 printf '     - pip & pipenv\n'
 printf '     - patator\n'
+printf '     - vncsnapshot\n'
 printf '     - zmap\n'
 printf '     - htop\n'
 printf '     - NFS server\n'
@@ -108,6 +111,7 @@ apt-get -y install \
     python3-dev \
     python3-pip \
     patator \
+    vncsnapshot \
     zmap \
     htop \
     nfs-kernel-server
