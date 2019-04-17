@@ -56,6 +56,12 @@ cd /opt
 git clone https://github.com/csxr/i3-gnome
 cd i3-gnome
 make install
+# make startup script
+echo '#!/bin/bash
+# xrandr --output eDP-1 --mode 1920x1080
+feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+' > /root/.config/i3_startup.sh
+
 # set up config
 grep '### KALI SETUP SCRIPT ###' /etc/i3/config || echo '
 ### KALI SETUP SCRIPT ###
@@ -67,13 +73,12 @@ exec_always --no-startup-id gnome-power-manager
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 # gnome flashback
 exec --no-startup-id gnome-flashback
-# resolution reset
-# exec --no-startup-id xrandr --output eDP-1 --mode 1920x1080
+# resolution / wallpaper
+exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
 
 # BLS theme
 # class             border  background  text        indicator   child_border
 client.focused      #444444 #444444     #FFFFFF     #FFFFFF     #444444
-exec --no-startup-id feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 ' >> /etc/i3/config.keycodes
 
 # gnome terminal
@@ -87,6 +92,8 @@ sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
 # focus child
 sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
 sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
+# win+L lock screen
+sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+l i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
