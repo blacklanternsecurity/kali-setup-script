@@ -29,7 +29,7 @@ apt-get -y remove gnome-software
 printf '\n============================================================\n'
 printf '[+] Setting Theme\n'
 printf '============================================================\n\n'
-# Kali dark theme
+# dark theme
 gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
@@ -100,10 +100,12 @@ printf '\n============================================================\n'
 printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
 printf '     - golang & environment\n'
+printf '     - docker\n'
 printf '     - gnome-screenshot\n'
 printf '     - terminator\n'
 printf '     - pip & pipenv\n'
 printf '     - patator\n'
+printf '     - bettercap\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
 printf '     - htop\n'
@@ -112,12 +114,14 @@ printf '============================================================\n\n'
 apt-get -y install \
     realtek-rtl88xxau-dkms \
     golang \
+    docker.io \
     gnome-screenshot \
     terminator \
     python-pip \
     python3-dev \
     python3-pip \
     patator \
+    bettercap \
     vncsnapshot \
     zmap \
     htop \
@@ -191,11 +195,22 @@ sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /u
 printf '\n============================================================\n'
 printf '[+] Installing Bloodhound\n'
 printf '============================================================\n\n'
+# uninstall old version
+apt-get -y remove bloodhound
+# download latest bloodhound release from github
+release_url="https://github.com/$(curl -s https://github.com/BloodHoundAD/BloodHound/releases | egrep -o '/BloodHoundAD/BloodHound/releases/download/.{1,10}/BloodHound-linux-x64.zip' | head -n 1)"
+cd /opt
+wget "$release_url"
+unzip -o 'BloodHound-linux-x64.zip'
+rm 'BloodHound-linux-x64.zip'
+ln -s '/opt/BloodHound-linux-x64/BloodHound' '/usr/local/bin/bloodhound'
+
+apt-get -y install neo4j gconf-service gconf2-common libgconf-2-4
 mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
 grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  40000
 root   hard    nofile  60000' >> /etc/security/limits.conf
 grep 'NEO4J_ULIMIT_NOFILE=60000' /etc/default/neo4j 2>/dev/null || echo 'NEO4J_ULIMIT_NOFILE=60000' >> /etc/default/neo4j
-apt-get install -y bloodhound
+# apt-get install -y bloodhound
 neo4j start
 
 
