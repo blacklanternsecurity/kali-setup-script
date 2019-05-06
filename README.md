@@ -27,6 +27,7 @@ curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-scr
 	1. Sublime Text
 	1. golang (plus environment)
 	1. zmap
+	1. LibreOffice
 	1. htop
 	1. gnome-screenshot
 	1. realtek-rtl88xxau-dkms (ALFA wireless drivers)

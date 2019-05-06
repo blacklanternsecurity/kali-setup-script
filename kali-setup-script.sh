@@ -108,6 +108,7 @@ printf '     - patator\n'
 printf '     - bettercap\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
+printf '     - LibreOffice\n'
 printf '     - htop\n'
 printf '     - NFS server\n'
 printf '============================================================\n\n'
@@ -124,6 +125,7 @@ apt-get -y install \
     bettercap \
     vncsnapshot \
     zmap \
+    libreoffice \
     htop \
     nfs-kernel-server
 python2 -m pip install pipenv
@@ -207,9 +209,11 @@ ln -s '/opt/BloodHound-linux-x64/BloodHound' '/usr/local/bin/bloodhound'
 
 apt-get -y install neo4j gconf-service gconf2-common libgconf-2-4
 mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
-grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  40000
-root   hard    nofile  60000' >> /etc/security/limits.conf
+grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
+root   hard    nofile  600000' >> /etc/security/limits.conf
 grep 'NEO4J_ULIMIT_NOFILE=60000' /etc/default/neo4j 2>/dev/null || echo 'NEO4J_ULIMIT_NOFILE=60000' >> /etc/default/neo4j
+grep 'fs.file-max' /etc/sysctl.conf 2>/dev/null || echo 'fs.file-max=500000' >> /etc/sysctl.conf
+sysctl -p
 # apt-get install -y bloodhound
 neo4j start
 
