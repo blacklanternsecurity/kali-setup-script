@@ -63,7 +63,7 @@ feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 ' > /root/.config/i3_startup.sh
 
 # set up config
-grep '### KALI SETUP SCRIPT ###' /etc/i3/config || echo '
+grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
 ### KALI SETUP SCRIPT ###
 # gnome settings daemon
 exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
@@ -93,7 +93,7 @@ sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
 sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
 sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
 # win+L lock screen
-sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+l i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
+sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
