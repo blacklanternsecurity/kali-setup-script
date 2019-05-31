@@ -93,7 +93,7 @@ sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
 sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
 sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
 # win+L lock screen
-sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
+sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+46 exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
@@ -332,8 +332,8 @@ gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Term
 
 
 printf '\n============================================================\n'
-printf '[+] Done.\n'
-printf "[+] Don't forget to manually install:\n"
+printf "[+] Done. Don't forget to reboot! :)\n"
+printf "[+] You may also want to install:\n"
 printf '     - BurpSuite Pro\n'
 printf '     - Firefox Add-Ons\n'
 printf '============================================================\n\n'
