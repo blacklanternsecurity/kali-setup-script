@@ -65,6 +65,8 @@ feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 # set up config
 grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
 ### KALI SETUP SCRIPT ###
+# win+L lock screen
+bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 # gnome settings daemon
 exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
 # gnome power manager
@@ -92,8 +94,6 @@ sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
 # focus child
 sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
 sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
-# win+L lock screen
-sed -i '/set $mod Mod1/a\set $sup Mod4\nbindcode $sup+46 exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png' /etc/i3/config.keycodes
 
 
 printf '\n============================================================\n'
@@ -110,6 +110,7 @@ printf '     - vncsnapshot\n'
 printf '     - zmap\n'
 printf '     - LibreOffice\n'
 printf '     - htop\n'
+printf '     - Remmina\n'
 printf '     - NFS server\n'
 printf '============================================================\n\n'
 apt-get -y install \
@@ -127,6 +128,7 @@ apt-get -y install \
     zmap \
     libreoffice \
     htop \
+    remmina \
     nfs-kernel-server
 python2 -m pip install pipenv
 python3 -m pip install pipenv
@@ -216,6 +218,13 @@ grep 'fs.file-max' /etc/sysctl.conf 2>/dev/null || echo 'fs.file-max=500000' >> 
 sysctl -p
 # apt-get install -y bloodhound
 neo4j start
+
+
+printf '\n============================================================\n'
+printf '[+] Installing Bettercap\n'
+printf '============================================================\n\n'
+apt-get -y install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
+go get -v github.com/bettercap/bettercap
 
 
 printf '\n============================================================\n'
