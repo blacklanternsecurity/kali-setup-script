@@ -15,6 +15,24 @@ gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
 
 
 printf '\n============================================================\n'
+printf '[+] Disabling LL-MNR\n'
+printf '============================================================\n\n'
+echo '[Match]
+name=*
+
+[Network]
+LLMNR=no' > /etc/systemd/network/90-disable-llmnr.network
+
+
+printf '\n============================================================\n'
+printf '[+] Disabling Terminal Transparency\n'
+printf '============================================================\n\n'
+profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
+profile=${profile:1:-1}
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
+
+
+printf '\n============================================================\n'
 printf '[+] Removing the abomination that is gnome-software\n'
 printf '============================================================\n\n'
 killall gnome-software
@@ -346,3 +364,6 @@ printf "[+] You may also want to install:\n"
 printf '     - BurpSuite Pro\n'
 printf '     - Firefox Add-Ons\n'
 printf '============================================================\n\n'
+
+# restart systemd-networkd for LL-MNR disablement
+systemctl restart systemd-networkd
