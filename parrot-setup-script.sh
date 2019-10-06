@@ -11,15 +11,10 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 printf '\n============================================================\n'
-printf '[+] Disabling Auto-lock, Sleep on AC\n'
+printf '[+] Removing Parrot Updater\n'
 printf '============================================================\n\n'
-gsettings set org.gnome.desktop.session idle-delay 0
-gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
-# disable menus in gnome terminal
-gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
-# disable "close terminal?" prompt
-gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
-
+killall zenity
+apt-get -y remove parrot-updater
 
 printf '\n============================================================\n'
 printf '[+] Disabling LL-MNR\n'
@@ -32,30 +27,9 @@ LLMNR=no' > /etc/systemd/network/90-disable-llmnr.network
 
 
 printf '\n============================================================\n'
-printf '[+] Disabling Terminal Transparency\n'
-printf '============================================================\n\n'
-profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
-profile=${profile:1:-1}
-gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
-
-
-printf '\n============================================================\n'
-printf '[+] Removing the abomination that is gnome-software\n'
-printf '============================================================\n\n'
-killall gnome-software
-while true
-do
-    pgrep gnome-software &>/dev/null || break
-    sleep .5
-done
-apt-get -y remove gnome-software
-
-
-printf '\n============================================================\n'
 printf '[+] Setting Theme\n'
 printf '============================================================\n\n'
-# dark theme
-gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
 wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
 if [[ -z "$wallpaper_file" ]]
@@ -64,61 +38,24 @@ then
 else
     cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
 fi
-gsettings set org.gnome.desktop.background primary-color "#000000"
-gsettings set org.gnome.desktop.background secondary-color "#000000"
-gsettings set org.gnome.desktop.background color-shading-type "solid"
-gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.background picture-options scaled
 
+# set desktop background
+dconf load /org/mate/desktop/background/ <<EOF
+[/]
+color-shading-type='solid'
+picture-filename='/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+picture-options='scaled'
+primary-color='rgb(0,0,0)'
+secondary-color='rgb(44,0,30)'
+EOF
 
-printf '\n============================================================\n'
-printf '[+] Installing i3\n'
-printf '============================================================\n\n'
-# install dependencies
-apt-get -y install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
-cd /opt
-git clone https://github.com/csxr/i3-gnome
-cd i3-gnome
-make install
-# make startup script
-echo '#!/bin/bash
-# xrandr --output eDP-1 --mode 1920x1080
-feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-' > /root/.config/i3_startup.sh
-
-# set up config
-grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
-### KALI SETUP SCRIPT ###
-# win+L lock screen
-bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-# gnome settings daemon
-exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
-# gnome power manager
-exec_always --no-startup-id gnome-power-manager
-# polkit-gnome
-exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-# gnome flashback
-exec --no-startup-id gnome-flashback
-# resolution / wallpaper
-exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
-
-# BLS theme
-# class             border  background  text        indicator   child_border
-client.focused      #444444 #444444     #FFFFFF     #FFFFFF     #444444
-' >> /etc/i3/config.keycodes
-
-# gnome terminal
-sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
-# improved dmenu
-sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
-# mod+shift+e logs out of gnome
-sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec gnome-session-quit/g' /etc/i3/config.keycodes
-# hack font
-sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
-# focus child
-sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
-sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
+# set terminal prompt
+#NEWPS1='PS1="\[\033[0;31m\]\342\224\214\342\224\200[$(if [[ ${EUID} == 0 ]]; then echo '"'"'\[\033[01;31m\]root\[\033[01;33m\]@\[\033[01;96m\]\h'"'"'; else echo '"'"'\[\033[0;39m\]\u\[\033[01;33m\]@\[\033[01;96m\]\h'"'"'; fi)\[\033[0;31m\]]\342\224\200[\[\033[0;32m\]\w\[\033[0;31m\]]\n\[\033[0;31m\]\342\224\224\342\224\200\342\224\200\342\225\274\[\033[0m\]\[\e[01;33m\]\\$\[\e[0m\] "'
+#for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home')
+#do
+#    sed -i '/^PS1=.*/c\' "$homedir/.bashrc"
+#    echo -n "${NEWPS1}" >> "$homedir/.bashrc"
+#done
 
 
 printf '\n============================================================\n'
@@ -190,37 +127,6 @@ printf '[+] Updating System\n'
 printf '============================================================\n\n'
 apt-get -y update
 apt-get -y upgrade
-
-
-printf '\n============================================================\n'
-printf '[+] Installing Firefox\n'
-printf '============================================================\n\n'
-if [[ ! -f /usr/share/applications/firefox.desktop ]]
-then
-    wget -O /tmp/firefox.tar.bz2 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
-    cd /opt
-    tar -xvjf /tmp/firefox.tar.bz2
-    if [[ -f /usr/bin/firefox ]]; then mv /usr/bin/firefox /usr/bin/firefox.bak; fi
-    ln -s /opt/firefox/firefox /usr/bin/firefox
-    rm /tmp/firefox.tar.bz2
-
-    cat <<EOF > /usr/share/applications/firefox.desktop
-[Desktop Entry]
-Name=Firefox
-Comment=Browse the World Wide Web
-GenericName=Web Browser
-X-GNOME-FullName=Firefox Web Browser
-Exec=/opt/firefox/firefox %u
-Terminal=false
-X-MultipleArgs=false
-Type=Application
-Icon=firefox-esr
-Categories=Network;WebBrowser;
-MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
-StartupWMClass=Firefox-esr
-StartupNotify=true
-EOF
-fi
 
 
 printf '\n============================================================\n'
@@ -329,19 +235,6 @@ grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
         exit
 fi' >> ~/.bashrc
 
-
-printf '\n============================================================\n'
-printf '[+] Disabling Animations\n'
-printf '============================================================\n\n'
-gsettings set org.gnome.desktop.interface enable-animations false
-
-
-printf '\n============================================================\n'
-printf '[+] Enabling Tap-to-click\n'
-printf '============================================================\n\n'
-gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-
-
 printf '\n============================================================\n'
 printf '[+] Initializing Metasploit Database\n'
 printf '============================================================\n\n'
@@ -353,7 +246,7 @@ msfdb init
 printf '\n============================================================\n'
 printf '[+] Disabling grub quiet mode\n'
 printf '============================================================\n\n'
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX="quiet splash noautomount"/GRUB_CMDLINE_LINUX="noautomount"/g' /etc/default/grub.d/parrot.cfg
 grub-mkconfig -o /boot/grub/grub.cfg
 
 
@@ -365,13 +258,191 @@ ln -s /usr/share/wordlists ~/Downloads/wordlists 2>/dev/null
 
 
 printf '\n============================================================\n'
+printf '[+] Consolidating Panel\n'
+printf '============================================================\n\n'
+# configure panel
+dconf load /org/mate/panel/ <<EOF
+[general]
+object-id-list=['menu-bar', 'object_1', 'object_11', 'object_4', 'object_12', 'object_13', 'object_14', 'object_15', 'object_16', 'object-0', 'object-1', 'object-2', 'object-4', 'object-5', 'object-6', 'object-7', 'object-8', 'object-3']
+toplevel-id-list=['bottom']
+
+[objects/object-0]
+applet-iid='ClockAppletFactory::ClockApplet'
+locked=true
+object-type='applet'
+panel-right-stick=false
+position=2668
+toplevel-id='bottom'
+
+[objects/object-0/prefs]
+custom-format=''
+format='24-hour'
+
+[objects/object-1]
+applet-iid='GvcAppletFactory::GvcApplet'
+locked=true
+object-type='applet'
+panel-right-stick=false
+position=2640
+toplevel-id='bottom'
+
+[objects/object-2]
+applet-iid='NetspeedAppletFactory::NetspeedApplet'
+locked=true
+object-type='applet'
+panel-right-stick=false
+position=2585
+toplevel-id='bottom'
+
+[objects/object-2/prefs]
+auto-change-device=true
+change-icon=true
+device='eth0'
+short-unit=false
+show-bits=false
+show-icon=true
+show-quality-icon=true
+show-sum=true
+
+[objects/object-3]
+launcher-location='/usr/share/applications/mate-screenshot.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=212
+toplevel-id='bottom'
+
+[objects/object-4]
+launcher-location='/usr/share/applications/mate-terminal.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=82
+toplevel-id='bottom'
+
+[objects/object-5]
+launcher-location='/usr/share/applications/firefox.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=134
+toplevel-id='bottom'
+
+[objects/object-6]
+launcher-location='/usr/share/applications/sublime_text.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=134
+toplevel-id='bottom'
+
+[objects/object-7]
+launcher-location='/usr/share/applications/caja-browser.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=108
+toplevel-id='bottom'
+
+[objects/object-8]
+launcher-location='/usr/share/applications/boostnote.desktop'
+locked=true
+object-type='launcher'
+panel-right-stick=false
+position=160
+toplevel-id='bottom'
+
+[objects/object_1]
+applet-iid='BriskMenuFactory::BriskMenu'
+locked=true
+object-type='applet'
+panel-right-stick=false
+position=1
+toplevel-id='bottom'
+
+[toplevels/bottom]
+auto-hide=false
+enable-buttons=false
+expand=true
+orientation='bottom'
+screen=0
+size=26
+x-centered=true
+x-right=-1
+y=1607
+y-bottom=0
+
+[toplevels/bottom/background]
+color='rgb(0,0,0)'
+opacity=31575
+type='color'
+
+[toplevels/toplevel_0]
+enable-arrows=true
+enable-buttons=true
+orientation='right'
+size=36
+
+[toplevels/toplevel_1]
+enable-arrows=true
+enable-buttons=true
+orientation='right'
+size=32
+
+[toplevels/toplevel_1/background]
+color='#008080'
+opacity=41704
+type='color'
+EOF
+
+# set keybindings
+gsettings set org.mate.Marco.window-keybindings unmaximize '<Alt>F5'
+gsettings set org.mate.Marco.window-keybindings minimize '<Mod4>Down'
+gsettings set org.mate.Marco.window-keybindings begin-move '<Alt>F7'
+gsettings set org.mate.Marco.window-keybindings activate-window-menu '<Alt>space'
+gsettings set org.mate.Marco.window-keybindings move-to-workspace-up '<Control><Shift><Alt>Up'
+gsettings set org.mate.Marco.window-keybindings move-to-workspace-right '<Control><Shift><Alt>Right'
+gsettings set org.mate.Marco.window-keybindings maximize '<Mod4>Up'
+gsettings set org.mate.Marco.window-keybindings tile-to-corner-ne '<Alt><Mod4>Right'
+gsettings set org.mate.Marco.window-keybindings tile-to-corner-sw '<Shift><Alt><Mod4>Left'
+gsettings set org.mate.Marco.window-keybindings tile-to-side-e '<Mod4>Right'
+gsettings set org.mate.Marco.window-keybindings move-to-workspace-left '<Control><Shift><Alt>Left'
+gsettings set org.mate.Marco.window-keybindings tile-to-corner-se '<Shift><Alt><Mod4>Right'
+gsettings set org.mate.Marco.window-keybindings move-to-center '<Alt><Mod4>c'
+gsettings set org.mate.Marco.window-keybindings begin-resize '<Alt>F8'
+gsettings set org.mate.Marco.window-keybindings tile-to-corner-nw '<Alt><Mod4>Left'
+gsettings set org.mate.Marco.window-keybindings tile-to-side-w '<Mod4>Left'
+gsettings set org.mate.Marco.window-keybindings move-to-workspace-down '<Control><Shift><Alt>Down'
+gsettings set org.mate.Marco.window-keybindings toggle-maximized '<Alt>F10'
+gsettings set org.mate.Marco.window-keybindings close '<Alt>F4'
+
+printf '\n============================================================\n'
 printf '[+] Cleaning Up\n'
 printf '============================================================\n\n'
-apt-get -y autoremove
+# currently this removes way too many packages when running as root
+#apt-get -y autoremove
 apt-get -y autoclean
 updatedb
 rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
-gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
+
+# fix file explorer bug
+apt-get -y remove --purge caja
+apt-get -y install caja
+sed -i 's/Exec=caja.*/Exec=caja --force-desktop/g' '/usr/share/applications/caja.desktop'
+
+# add space after shell prompt
+sed -i 's/\[0m\\]"$/[0m\\] "/g' '/root/.bashrc'
+
+# remove all users except for root
+read -p "Delete all users except for root? (y/n)" -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    for user in $(ls /home)
+    do
+        userdel -rf "${user}"
+    done
+fi
 
 
 printf '\n============================================================\n'
