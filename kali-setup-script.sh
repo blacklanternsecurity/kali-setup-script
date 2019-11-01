@@ -76,7 +76,7 @@ printf '\n============================================================\n'
 printf '[+] Installing i3\n'
 printf '============================================================\n\n'
 # install dependencies
-apt-get -y install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
+apt-get -o Dpkg::Options::="--force-confdef" -y install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
 cd /opt
 git clone https://github.com/csxr/i3-gnome
 cd i3-gnome
@@ -140,7 +140,7 @@ printf '     - Remmina\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '============================================================\n\n'
-apt-get -y install \
+apt-get -o Dpkg::Options::="--force-confdef" -y install \
     realtek-rtl88xxau-dkms \
     golang \
     docker.io \
@@ -192,7 +192,7 @@ printf '\n============================================================\n'
 printf '[+] Updating System\n'
 printf '============================================================\n\n'
 apt-get -y update
-apt-get -y upgrade
+apt-get -o Dpkg::Options::="--force-confdef" -y upgrade
 
 
 printf '\n============================================================\n'
@@ -229,7 +229,7 @@ fi
 printf '\n============================================================\n'
 printf '[+] Installing Chromium\n'
 printf '============================================================\n\n'
-apt-get install -y chromium
+apt-get -o Dpkg::Options::="--force-confdef" install -y chromium
 sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
 
 
@@ -246,7 +246,7 @@ unzip -o 'BloodHound-linux-x64.zip'
 rm 'BloodHound-linux-x64.zip'
 ln -s '/opt/BloodHound-linux-x64/BloodHound' '/usr/local/bin/bloodhound'
 
-apt-get -y install neo4j gconf-service gconf2-common libgconf-2-4
+apt-get -o Dpkg::Options::="--force-confdef" -y install neo4j gconf-service gconf2-common libgconf-2-4
 mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
 grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
 root   hard    nofile  600000' >> /etc/security/limits.conf
@@ -260,7 +260,7 @@ neo4j start
 printf '\n============================================================\n'
 printf '[+] Installing Bettercap\n'
 printf '============================================================\n\n'
-apt-get -y install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
+apt-get -o Dpkg::Options::="--force-confdef" -y install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
 go get -v github.com/bettercap/bettercap
 
 
@@ -270,7 +270,7 @@ printf '============================================================\n\n'
 cme_dir="$(ls -d /root/.local/share/virtualenvs/* | grep CrackMapExec | head -n 1)"
 if [[ ! -z "$cme_dir" ]]; then rm -r "$cme_dir" &>/dev/null; fi
 rm -r /opt/CrackMapExec &>/dev/null
-apt-get install -y libssl-dev libffi-dev python-dev build-essential
+apt-get -o Dpkg::Options::="--force-confdef" install -y libssl-dev libffi-dev python-dev build-essential
 pip install pipenv
 cd /opt
 git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec
@@ -280,7 +280,7 @@ python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
 ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Downloads/crackmapexec_bleeding_edge
 cd / && rm -r /opt/CrackMapExec
-apt-get -y install crackmapexec
+apt-get -o Dpkg::Options::="--force-confdef" -y install crackmapexec
 
 
 printf '\n============================================================\n'
@@ -304,7 +304,7 @@ wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add
 apt-get -y install apt-transport-https
 echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
 apt-get -y update
-apt-get -y install sublime-text
+apt-get -o Dpkg::Options::="--force-confdef" -y install sublime-text
 
 
 printf '\n============================================================\n'
@@ -313,7 +313,7 @@ printf '============================================================\n\n'
 boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
 cd ~/Downloads
 wget -O boostnote.deb "$boost_deb_url"
-apt-get -y install gconf2 gvfs-bin
+apt-get -o Dpkg::Options::="--force-confdef" -y install gconf2 gvfs-bin
 dpkg -i boostnote.deb
 rm boostnote.deb
 
@@ -354,11 +354,11 @@ systemctl enable postgresql
 msfdb init
 
 
-printf '\n============================================================\n'
-printf '[+] Disabling grub quiet mode\n'
-printf '============================================================\n\n'
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
-grub-mkconfig -o /boot/grub/grub.cfg
+#printf '\n============================================================\n'
+#printf '[+] Disabling grub quiet mode\n'
+#printf '============================================================\n\n'
+#sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
+#grub-mkconfig -o /boot/grub/grub.cfg
 
 
 printf '\n============================================================\n'
