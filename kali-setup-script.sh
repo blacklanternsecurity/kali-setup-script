@@ -138,6 +138,7 @@ printf '     - LibreOffice\n'
 printf '     - htop\n'
 printf '     - Remmina\n'
 printf '     - NFS server\n'
+printf '     - DNS Server\n'
 printf '============================================================\n\n'
 apt-get -y install \
     realtek-rtl88xxau-dkms \
@@ -155,13 +156,15 @@ apt-get -y install \
     libreoffice \
     htop \
     remmina \
-    nfs-kernel-server
+    nfs-kernel-server \
+    dnsmasq
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
 
 # initialize mitmproxy cert
-mitmproxy --help
+mitmproxy &
+killall mitmproxy
 # trust certificate
 cp ~/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
 update-ca-certificates
@@ -264,7 +267,8 @@ go get -v github.com/bettercap/bettercap
 printf '\n============================================================\n'
 printf '[+] Installing CrackMapExec\n'
 printf '============================================================\n\n'
-rm -r $(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1) &>/dev/null
+cme_dir="$(ls -d /root/.local/share/virtualenvs/* | grep CrackMapExec | head -n 1)"
+if [[ ! -z "$cme_dir" ]]; then rm -r "$cme_dir" &>/dev/null; fi
 rm -r /opt/CrackMapExec &>/dev/null
 apt-get install -y libssl-dev libffi-dev python-dev build-essential
 pip install pipenv
