@@ -139,6 +139,7 @@ printf '     - htop\n'
 printf '     - Remmina\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
+printf '     - hcxtools (hashcat)\n'
 printf '============================================================\n\n'
 apt-get -o Dpkg::Options::="--force-confdef" -y install \
     realtek-rtl88xxau-dkms \
@@ -157,7 +158,8 @@ apt-get -o Dpkg::Options::="--force-confdef" -y install \
     htop \
     remmina \
     nfs-kernel-server \
-    dnsmasq
+    dnsmasq \
+    hcxtools
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
@@ -354,6 +356,7 @@ systemctl enable postgresql
 msfdb init
 
 
+# Kali defaults to syslinux now?
 #printf '\n============================================================\n'
 #printf '[+] Disabling grub quiet mode\n'
 #printf '============================================================\n\n'
@@ -371,8 +374,9 @@ ln -s /usr/share/wordlists ~/Downloads/wordlists 2>/dev/null
 printf '\n============================================================\n'
 printf '[+] Cleaning Up\n'
 printf '============================================================\n\n'
-apt-get -y autoremove
-apt-get -y autoclean
+# this seems to remove undesired packages
+#apt-get -y autoremove
+#apt-get -y autoclean
 updatedb
 rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
 gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
