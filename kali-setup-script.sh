@@ -266,6 +266,29 @@ apt-get -o Dpkg::Options::="--force-confdef" -y install libnetfilter-queue-dev l
 go get -v github.com/bettercap/bettercap
 
 
+
+#printf '\n============================================================\n'
+#printf '[+] Installing Zeek\n'
+#printf '============================================================\n\n'
+#echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_10/ /' > /etc/apt/sources.list.d/security:zeek.list
+#wget -nv https://download.opensuse.org/repositories/security:zeek/Debian_10/Release.key -O Release.key
+#apt-key add - < Release.key
+#rm Release.key
+#apt-get -y update
+#apt-get -o Dpkg::Options::="--force-confdef" -y install zeek
+
+
+printf '\n============================================================\n'
+printf '[+] Installing PCredz\n'
+printf '============================================================\n\n'
+apt-get -y remove python-pypcap
+apt-get -o Dpkg::Options::="--force-confdef" -y install python-libpcap
+cd /opt
+git clone https://github.com/lgandx/PCredz.git
+ln -s /opt/PCredz/Pcredz.py /usr/local/bin/pcredz
+
+
+
 printf '\n============================================================\n'
 printf '[+] Installing CrackMapExec\n'
 printf '============================================================\n\n'
@@ -356,12 +379,11 @@ systemctl enable postgresql
 msfdb init
 
 
-# Kali defaults to syslinux now?
-#printf '\n============================================================\n'
-#printf '[+] Disabling grub quiet mode\n'
-#printf '============================================================\n\n'
-#sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
-#grub-mkconfig -o /boot/grub/grub.cfg
+printf '\n============================================================\n'
+printf '[+] Disabling grub quiet mode\n'
+printf '============================================================\n\n'
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
 
 
 printf '\n============================================================\n'
