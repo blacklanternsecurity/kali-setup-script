@@ -7,8 +7,13 @@ then
     exit 1
 fi
 
+# enable command aliasing
+shopt -s expand_aliases
+
 # skip prompts in apt-upgrade, etc.
 export DEBIAN_FRONTEND=noninteractive
+alias apt-get='apt-get -o Dpkg::Options::="--force-confdef" -y'
+
 
 printf '\n============================================================\n'
 printf '[+] Disabling Auto-lock, Sleep on AC\n'
@@ -37,6 +42,8 @@ printf '============================================================\n\n'
 profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
 profile=${profile:1:-1}
 gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
+# bring back minimize/maxminize buttons
+gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
 
 
 printf '\n============================================================\n'
@@ -48,7 +55,7 @@ do
     pgrep gnome-software &>/dev/null || break
     sleep .5
 done
-apt-get -y remove gnome-software
+yes '' | apt-get remove gnome-software
 
 
 printf '\n============================================================\n'
@@ -76,7 +83,7 @@ printf '\n============================================================\n'
 printf '[+] Installing i3\n'
 printf '============================================================\n\n'
 # install dependencies
-apt-get -o Dpkg::Options::="--force-confdef" -y install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
+yes '' | apt-get install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
 cd /opt
 git clone https://github.com/csxr/i3-gnome
 cd i3-gnome
@@ -131,7 +138,6 @@ printf '     - terminator\n'
 printf '     - pip & pipenv\n'
 printf '     - mitmproxy\n'
 printf '     - patator\n'
-printf '     - bettercap\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
 printf '     - LibreOffice\n'
@@ -141,7 +147,7 @@ printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
 printf '============================================================\n\n'
-apt-get -o Dpkg::Options::="--force-confdef" -y install \
+yes '' | apt-get install \
     realtek-rtl88xxau-dkms \
     golang \
     docker.io \
@@ -151,7 +157,7 @@ apt-get -o Dpkg::Options::="--force-confdef" -y install \
     python3-dev \
     python3-pip \
     patator \
-    bettercap \
+    net-tools \
     vncsnapshot \
     zmap \
     libreoffice \
@@ -163,6 +169,11 @@ apt-get -o Dpkg::Options::="--force-confdef" -y install \
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
+
+# enable and start docker
+systemctl stop docker &>/dev/null
+echo '{"bip":"172.16.199/24"}' > /etc/docker/daemon.json
+systemctl enable docker --now
 
 # initialize mitmproxy cert
 mitmproxy &
@@ -193,8 +204,8 @@ fgrep 'unmanaged-devices' &>/dev/null /etc/NetworkManager/NetworkManager.conf ||
 printf '\n============================================================\n'
 printf '[+] Updating System\n'
 printf '============================================================\n\n'
-apt-get -y update
-apt-get -o Dpkg::Options::="--force-confdef" -y upgrade
+yes '' | apt-get update
+yes '' | apt-get upgrade
 
 
 printf '\n============================================================\n'
@@ -231,15 +242,24 @@ fi
 printf '\n============================================================\n'
 printf '[+] Installing Chromium\n'
 printf '============================================================\n\n'
-apt-get -o Dpkg::Options::="--force-confdef" install -y chromium
+yes '' | apt-get install chromium
 sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
+
+
+printf '\n============================================================\n'
+printf '[+] Installing Zmap Asset Inventory\n'
+printf '============================================================\n\n'
+cd /root/Downloads
+mv zmap-asset-inventory "zmap-asset-inventory.bak$(date +%s)" &> /dev/null
+git clone https://github.com/blacklanternsecurity/zmap-asset-inventory
+docker build --network host -t zmap-assets zmap-asset-inventory
 
 
 printf '\n============================================================\n'
 printf '[+] Installing Bloodhound\n'
 printf '============================================================\n\n'
 # uninstall old version
-apt-get -y remove bloodhound
+yes '' | apt-get remove bloodhound
 # download latest bloodhound release from github
 release_url="https://github.com/$(curl -s https://github.com/BloodHoundAD/BloodHound/releases | egrep -o '/BloodHoundAD/BloodHound/releases/download/.{1,10}/BloodHound-linux-x64.zip' | head -n 1)"
 cd /opt
@@ -248,7 +268,7 @@ unzip -o 'BloodHound-linux-x64.zip'
 rm 'BloodHound-linux-x64.zip'
 ln -s '/opt/BloodHound-linux-x64/BloodHound' '/usr/local/bin/bloodhound'
 
-apt-get -o Dpkg::Options::="--force-confdef" -y install neo4j gconf-service gconf2-common libgconf-2-4
+yes '' | apt-get install neo4j gconf-service gconf2-common libgconf-2-4
 mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
 grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
 root   hard    nofile  600000' >> /etc/security/limits.conf
@@ -262,9 +282,14 @@ neo4j start
 printf '\n============================================================\n'
 printf '[+] Installing Bettercap\n'
 printf '============================================================\n\n'
-apt-get -o Dpkg::Options::="--force-confdef" -y install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
+yes '' | apt-get install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
 go get -v github.com/bettercap/bettercap
 
+
+printf '\n============================================================\n'
+printf '[+] Installing Gowitness\n'
+printf '============================================================\n\n'
+go get -v github.com/sensepost/gowitness
 
 
 #printf '\n============================================================\n'
@@ -275,14 +300,14 @@ go get -v github.com/bettercap/bettercap
 #apt-key add - < Release.key
 #rm Release.key
 #apt-get -y update
-#apt-get -o Dpkg::Options::="--force-confdef" -y install zeek
+#apt-get install zeek
 
 
 printf '\n============================================================\n'
 printf '[+] Installing PCredz\n'
 printf '============================================================\n\n'
-apt-get -y remove python-pypcap
-apt-get -o Dpkg::Options::="--force-confdef" -y install python-libpcap
+yes '' | apt-get remove python-pypcap
+yes '' | apt-get install python-libpcap
 cd /opt
 git clone https://github.com/lgandx/PCredz.git
 ln -s /opt/PCredz/Pcredz.py /usr/local/bin/pcredz
@@ -295,7 +320,7 @@ printf '============================================================\n\n'
 cme_dir="$(ls -d /root/.local/share/virtualenvs/* | grep CrackMapExec | head -n 1)"
 if [[ ! -z "$cme_dir" ]]; then rm -r "$cme_dir" &>/dev/null; fi
 rm -r /opt/CrackMapExec &>/dev/null
-apt-get -o Dpkg::Options::="--force-confdef" install -y libssl-dev libffi-dev python-dev build-essential
+yes '' | apt-get install libssl-dev libffi-dev python-dev build-essential
 pip install pipenv
 cd /opt
 git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec
@@ -305,7 +330,7 @@ python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
 ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Downloads/crackmapexec_bleeding_edge
 cd / && rm -r /opt/CrackMapExec
-apt-get -o Dpkg::Options::="--force-confdef" -y install crackmapexec
+yes '' | apt-get install crackmapexec
 
 
 printf '\n============================================================\n'
@@ -326,10 +351,10 @@ printf '\n============================================================\n'
 printf '[+] Installing Sublime Text\n'
 printf '============================================================\n\n'
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
-apt-get -y install apt-transport-https
+yes '' | apt-get install apt-transport-https
 echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
-apt-get -y update
-apt-get -o Dpkg::Options::="--force-confdef" -y install sublime-text
+yes '' | apt-get update
+yes '' | apt-get install sublime-text
 
 
 printf '\n============================================================\n'
@@ -338,7 +363,7 @@ printf '============================================================\n\n'
 boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
 cd ~/Downloads
 wget -O boostnote.deb "$boost_deb_url"
-apt-get -o Dpkg::Options::="--force-confdef" -y install gconf2 gvfs-bin
+yes '' | apt-get install gconf2 gvfs-bin
 dpkg -i boostnote.deb
 rm boostnote.deb
 
