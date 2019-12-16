@@ -400,7 +400,7 @@ grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
                 mkdir $logdir
         fi
         #gzip -q $logdir/*.log &>/dev/null
-        logfile=$logdir/$(date +%F_%T).$$.log
+        logfile=$logdir/$(date +%F_%H_%M_%S).$$.log
         export UNDER_SCRIPT=$logfile
         script -f -q $logfile
         exit
