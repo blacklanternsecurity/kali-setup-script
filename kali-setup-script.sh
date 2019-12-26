@@ -54,20 +54,20 @@ printf '============================================================\n\n'
 # dark theme
 # gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
-wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
+wallpaper_file="$(find . -type f -name hackerman.png)"
 if [[ -z "$wallpaper_file" ]]
 then
-    wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+    wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/hackerman.png
 else
-    cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+    cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/hackerman.png'
 fi
 gsettings set org.gnome.desktop.background primary-color "#000000"
 gsettings set org.gnome.desktop.background secondary-color "#000000"
 gsettings set org.gnome.desktop.background color-shading-type "solid"
-gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/hackerman.png"
+gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/hackerman.png"
 gsettings set org.gnome.desktop.background picture-options scaled
-xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/hackerman.png
 
 
 # printf '\n============================================================\n'
@@ -82,14 +82,14 @@ xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/s
 # # make startup script
 # echo '#!/bin/bash
 # # xrandr --output eDP-1 --mode 1920x1080
-# feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+# feh --bg-scale /usr/share/wallpapers/wallpapers/hackerman.png
 # ' > /root/.config/i3_startup.sh
 # 
 # # set up config
 # grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
 # ### KALI SETUP SCRIPT ###
 # # win+L lock screen
-# bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+# bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/hackerman.png
 # # gnome settings daemon
 # exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
 # # gnome power manager
