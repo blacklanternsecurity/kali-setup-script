@@ -164,7 +164,7 @@ python3 -m pip install mitmproxy
 
 # enable and start docker
 systemctl stop docker &>/dev/null
-echo '{"bip":"172.16.199/24"}' > /etc/docker/daemon.json
+echo '{"bip":"172.16.199.1/24"}' > /etc/docker/daemon.json
 systemctl enable docker --now
 
 # initialize mitmproxy cert
