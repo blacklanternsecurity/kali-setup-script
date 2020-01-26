@@ -1,5 +1,37 @@
 #!/bin/bash
 
+usage()
+{
+    cat <<EOF
+Usage: ${0##*/} [option]
+  Options:
+    --i3            Set up i3 as the default window manager
+    --remove-i3     Set window manager back to XFCE defaults
+    --help          Display this message
+
+EOF
+exit 0
+}
+
+# parse arguments
+while :
+do
+    case $1 in
+        i3|-i3|--i3)
+            install_i3=true;
+            ;;
+        remove-i3|-remove-i3|--remove-i3)
+            remove_i3=true;
+            ;;
+        -h|--help|help)
+            usage
+            ;;
+        *)
+            break
+    esac
+    shift
+done
+
 # make sure we're root
 if [[ "$EUID" -ne 0 ]]
 then
@@ -16,14 +48,31 @@ alias apt-get='apt-get -o Dpkg::Options::="--force-confdef" -y'
 
 
 printf '\n============================================================\n'
-printf '[+] Disabling Auto-lock, Sleep on AC\n'
+printf '[+] Setting Default Terminal\n'
 printf '============================================================\n\n'
-gsettings set org.gnome.desktop.session idle-delay 0
-gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+# set default terminal
+sed -i 's/TerminalEmulator=.*/TerminalEmulator=gnome-terminal/g' ~/.config/xfce4/helpers.rc
 # disable menus in gnome terminal
 gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
 # disable "close terminal?" prompt
 gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
+
+
+printf '\n============================================================\n'
+printf '[+] Disabling Auto-lock, Sleep on AC\n'
+printf '============================================================\n\n'
+# disable session idle
+gsettings set org.gnome.desktop.session idle-delay 0
+# disable sleep when on AC power
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+# disable screen timeout on AC
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0
+# disable sleep when on AC
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14
+# hibernate when power is critical
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2
 
 
 printf '\n============================================================\n'
@@ -36,16 +85,16 @@ name=*
 LLMNR=no' > /etc/systemd/network/90-disable-llmnr.network
 
 
-# printf '\n============================================================\n'
-# printf '[+] Removing the abomination that is gnome-software\n'
-# printf '============================================================\n\n'
-# killall gnome-software
-# while true
-# do
-#     pgrep gnome-software &>/dev/null || break
-#     sleep .5
-# done
-# yes '' | apt-get remove gnome-software
+printf '\n============================================================\n'
+printf '[+] Removing the abomination that is gnome-software\n'
+printf '============================================================\n\n'
+killall gnome-software
+while true
+do
+    pgrep gnome-software &>/dev/null || break
+    sleep .5
+done
+yes '' | apt-get remove gnome-software
 
 
 printf '\n============================================================\n'
@@ -70,53 +119,117 @@ gsettings set org.gnome.desktop.background picture-options scaled
 xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 
 
-# printf '\n============================================================\n'
-# printf '[+] Installing i3\n'
-# printf '============================================================\n\n'
-# # install dependencies
-# yes '' | apt-get install i3 j4-dmenu-desktop gnome-flashback fonts-hack feh
-# cd /opt
-# git clone https://github.com/csxr/i3-gnome
-# cd i3-gnome
-# make install
-# # make startup script
-# echo '#!/bin/bash
-# # xrandr --output eDP-1 --mode 1920x1080
-# feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-# ' > /root/.config/i3_startup.sh
-# 
-# # set up config
-# grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
-# ### KALI SETUP SCRIPT ###
-# # win+L lock screen
+if [ -n "$remove_i3" ]
+then
+    rm ~/.config/autostart/i3.desktop
+    rm ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+    rm -r ~/.cache/sessions
+fi
+
+if [ -n "$install_i3" ]
+then
+    printf '\n============================================================\n'
+    printf '[+] Installing i3\n'
+    printf '============================================================\n\n'
+    # install dependencies
+    yes '' | apt-get install i3 j4-dmenu-desktop fonts-hack feh
+    # make startup script
+    echo '#!/bin/bash
+xrandr --output eDP-1 --mode 1920x1080
+sleep 1
+feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+' > /root/.config/i3_startup.sh
+
+    # set up config
+    grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
+### KALI SETUP SCRIPT ###
+# win+L lock screen
 # bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-# # gnome settings daemon
-# exec --no-startup-id /usr/lib/gnome-settings-daemon/gsd-xsettings
-# # gnome power manager
-# exec_always --no-startup-id gnome-power-manager
-# # polkit-gnome
-# exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-# # gnome flashback
-# exec --no-startup-id gnome-flashback
-# # resolution / wallpaper
-# exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
-# 
-# # BLS theme
-# # class             border  background  text        indicator   child_border
-# client.focused      #444444 #444444     #FFFFFF     #FFFFFF     #444444
-# ' >> /etc/i3/config.keycodes
-# 
-# # gnome terminal
-# sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
-# # improved dmenu
-# sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
-# # mod+shift+e logs out of gnome
-# sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec gnome-session-quit/g' /etc/i3/config.keycodes
-# # hack font
-# sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
-# # focus child
-# sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
-# sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
+# win+E file explorer
+# bindsym $sup+e exec thunar
+# resolution / wallpaper
+exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
+
+# BLS theme
+# class             border  background  text        indicator   child_border
+client.focused      #666666 #666666     #FFFFFF     #FFFFFF     #666666
+' >> /etc/i3/config.keycodes
+
+    # gnome terminal
+    sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
+    # improved dmenu
+    sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
+    # mod+shift+e logs out of gnome
+    sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec xfce4-session-logout/g' /etc/i3/config.keycodes
+    # hack font
+    sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
+    # focus child
+    sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
+    sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
+
+    # create i3 autostart file
+    cat <<EOF > /root/.config/autostart/i3.desktop
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.9.4
+Type=Application
+Name=i3
+Comment=i3
+Exec=i3
+OnlyShowIn=XFCE;
+RunHook=0
+StartupNotify=false
+Terminal=false
+Hidden=false
+EOF
+
+    # create XFCE session
+    cat <<EOF > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-session" version="1.0">
+  <property name="splash" type="empty">
+    <property name="Engine" type="empty"/>
+    <property name="engines" type="empty">
+      <property name="simple" type="empty">
+        <property name="Font" type="empty"/>
+        <property name="BgColor" type="empty"/>
+        <property name="FgColor" type="empty"/>
+        <property name="Image" type="empty"/>
+      </property>
+    </property>
+  </property>
+  <property name="general" type="empty">
+    <property name="FailsafeSessionName" type="empty"/>
+    <property name="LockCommand" type="empty"/>
+  </property>
+  <property name="sessions" type="empty">
+    <property name="Failsafe" type="empty">
+      <property name="IsFailsafe" type="empty"/>
+      <property name="Count" type="empty"/>
+      <property name="Client0_Command" type="empty"/>
+      <property name="Client0_Priority" type="empty"/>
+      <property name="Client0_PerScreen" type="empty"/>
+      <property name="Client1_Command" type="empty"/>
+      <property name="Client1_Priority" type="empty"/>
+      <property name="Client1_PerScreen" type="empty"/>
+      <property name="Client2_Command" type="empty"/>
+      <property name="Client2_Priority" type="empty"/>
+      <property name="Client2_PerScreen" type="empty"/>
+      <property name="Client3_Command" type="empty"/>
+      <property name="Client3_Priority" type="empty"/>
+      <property name="Client3_PerScreen" type="empty"/>
+      <property name="Client4_Command" type="empty"/>
+      <property name="Client4_Priority" type="empty"/>
+      <property name="Client4_PerScreen" type="empty"/>
+    </property>
+  </property>
+  <property name="compat" type="empty">
+    <property name="LaunchGNOME" type="bool" value="true"/>
+  </property>
+</channel>
+EOF
+fi
 
 
 printf '\n============================================================\n'
@@ -427,8 +540,8 @@ printf '\n============================================================\n'
 printf '[+] Enabling Tap-to-click\n'
 printf '============================================================\n\n'
 gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -s 1
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tap_Action -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2
+xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1
+xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int
 
 
 printf '\n============================================================\n'
