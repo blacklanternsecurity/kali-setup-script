@@ -5,6 +5,9 @@ Prepares Kali for a pentest by enabling session logging, installing tools, and m
 <img alt="Gnome" src="https://i.imgur.com/pXh7AUu.png" width=500>
 <img alt="i3 + Gnome" src="https://i.imgur.com/DEEJhvO.png" width=400>
 
+## NOTE: THIS SCRIPT ASSUMES YOU ARE RUNNING AS ROOT (LIKE IN THE OLD DAYS)
+## NON-ROOT USERS ARE NOT SUPPORTED
+
 ## One-liner:
 (don't forget to reboot after the script finishes :)
 ~~~
