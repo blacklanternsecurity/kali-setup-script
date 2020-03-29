@@ -495,6 +495,8 @@ then
     printf '============================================================\n\n'
     # install dependencies
     apt-get install i3 j4-dmenu-desktop fonts-hack feh
+    # make sure .config directory exists
+    mkdir -p /root/.config
     # make startup script
     echo '#!/bin/bash
 xrandr --output eDP-1 --mode 1920x1080
@@ -585,7 +587,7 @@ then
     printf '\n============================================================\n'
     printf '[+] Installing Zmap Asset Inventory\n'
     printf '============================================================\n\n'
-    cd /root/Downloads
+    cd /opt
     mv zmap-asset-inventory "zmap-asset-inventory.bak$(date +%s)" &> /dev/null
     git clone https://github.com/blacklanternsecurity/zmap-asset-inventory
     docker build --network host -t zmap-assets zmap-asset-inventory
