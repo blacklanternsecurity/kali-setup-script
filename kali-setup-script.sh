@@ -131,6 +131,7 @@ printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
 printf '     - golang & environment\n'
 printf '     - docker\n'
+printf '     - powershell\n'
 printf '     - gnome-screenshot\n'
 printf '     - terminator\n'
 printf '     - pip & pipenv\n'
@@ -150,6 +151,7 @@ apt-get install \
     realtek-rtl88xxau-dkms \
     golang \
     docker.io \
+    powershell \
     gnome-screenshot \
     terminator \
     python-pip \
