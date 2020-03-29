@@ -7,6 +7,7 @@ Usage: ${0##*/} [option]
   Options:
     --i3            Set up i3 as the default window manager
     --remove-i3     Set window manager back to XFCE defaults
+    --no-zmap       Don't install zmap asset inventory
     --help          Display this message
 
 EOF
@@ -22,6 +23,9 @@ do
             ;;
         remove-i3|-remove-i3|--remove-i3)
             remove_i3=true;
+            ;;
+        no-zmap|-no-zmap|--no-zmap)
+            no_zmap=true;
             ;;
         -h|--help|help)
             usage
@@ -44,18 +48,16 @@ shopt -s expand_aliases
 
 # skip prompts in apt-upgrade, etc.
 export DEBIAN_FRONTEND=noninteractive
-alias apt-get='apt-get -o Dpkg::Options::="--force-confdef" -y'
+alias apt-get='yes "" | apt-get -o Dpkg::Options::="--force-confdef" -y'
+apt-get update
 
 
 printf '\n============================================================\n'
-printf '[+] Setting Default Terminal\n'
+printf '[+] Enabling Tap-to-click\n'
 printf '============================================================\n\n'
-# set default terminal
-sed -i 's/TerminalEmulator=.*/TerminalEmulator=gnome-terminal/g' ~/.config/xfce4/helpers.rc
-# disable menus in gnome terminal
-gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
-# disable "close terminal?" prompt
-gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
+gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1 --create
+xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int --create
 
 
 printf '\n============================================================\n'
@@ -66,13 +68,13 @@ gsettings set org.gnome.desktop.session idle-delay 0
 # disable sleep when on AC power
 gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
 # disable screen timeout on AC
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0 --create --type int
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0 --create --type int
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0 --create --type int
 # disable sleep when on AC
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14 --create --type int
 # hibernate when power is critical
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2 --create --type int
 
 
 printf '\n============================================================\n'
@@ -94,7 +96,7 @@ do
     pgrep gnome-software &>/dev/null || break
     sleep .5
 done
-yes '' | apt-get remove gnome-software
+apt-get remove gnome-software
 
 
 printf '\n============================================================\n'
@@ -119,119 +121,6 @@ gsettings set org.gnome.desktop.background picture-options scaled
 xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 
 
-if [ -n "$remove_i3" ]
-then
-    rm ~/.config/autostart/i3.desktop
-    rm ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
-    rm -r ~/.cache/sessions
-fi
-
-if [ -n "$install_i3" ]
-then
-    printf '\n============================================================\n'
-    printf '[+] Installing i3\n'
-    printf '============================================================\n\n'
-    # install dependencies
-    yes '' | apt-get install i3 j4-dmenu-desktop fonts-hack feh
-    # make startup script
-    echo '#!/bin/bash
-xrandr --output eDP-1 --mode 1920x1080
-sleep 1
-feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-' > /root/.config/i3_startup.sh
-
-    # set up config
-    grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
-### KALI SETUP SCRIPT ###
-# win+L lock screen
-# bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-# win+E file explorer
-# bindsym $sup+e exec thunar
-# resolution / wallpaper
-exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
-
-# BLS theme
-# class             border  background  text        indicator   child_border
-client.focused      #666666 #666666     #FFFFFF     #FFFFFF     #666666
-' >> /etc/i3/config.keycodes
-
-    # gnome terminal
-    sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
-    # improved dmenu
-    sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
-    # mod+shift+e logs out of gnome
-    sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec xfce4-session-logout/g' /etc/i3/config.keycodes
-    # hack font
-    sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
-    # focus child
-    sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
-    sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
-
-    # create i3 autostart file
-    cat <<EOF > /root/.config/autostart/i3.desktop
-[Desktop Entry]
-Encoding=UTF-8
-Version=0.9.4
-Type=Application
-Name=i3
-Comment=i3
-Exec=i3
-OnlyShowIn=XFCE;
-RunHook=0
-StartupNotify=false
-Terminal=false
-Hidden=false
-EOF
-
-    # create XFCE session
-    cat <<EOF > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
-<?xml version="1.0" encoding="UTF-8"?>
-
-<channel name="xfce4-session" version="1.0">
-  <property name="splash" type="empty">
-    <property name="Engine" type="empty"/>
-    <property name="engines" type="empty">
-      <property name="simple" type="empty">
-        <property name="Font" type="empty"/>
-        <property name="BgColor" type="empty"/>
-        <property name="FgColor" type="empty"/>
-        <property name="Image" type="empty"/>
-      </property>
-    </property>
-  </property>
-  <property name="general" type="empty">
-    <property name="FailsafeSessionName" type="empty"/>
-    <property name="LockCommand" type="empty"/>
-  </property>
-  <property name="sessions" type="empty">
-    <property name="Failsafe" type="empty">
-      <property name="IsFailsafe" type="empty"/>
-      <property name="Count" type="empty"/>
-      <property name="Client0_Command" type="empty"/>
-      <property name="Client0_Priority" type="empty"/>
-      <property name="Client0_PerScreen" type="empty"/>
-      <property name="Client1_Command" type="empty"/>
-      <property name="Client1_Priority" type="empty"/>
-      <property name="Client1_PerScreen" type="empty"/>
-      <property name="Client2_Command" type="empty"/>
-      <property name="Client2_Priority" type="empty"/>
-      <property name="Client2_PerScreen" type="empty"/>
-      <property name="Client3_Command" type="empty"/>
-      <property name="Client3_Priority" type="empty"/>
-      <property name="Client3_PerScreen" type="empty"/>
-      <property name="Client4_Command" type="empty"/>
-      <property name="Client4_Priority" type="empty"/>
-      <property name="Client4_PerScreen" type="empty"/>
-    </property>
-  </property>
-  <property name="compat" type="empty">
-    <property name="LaunchGNOME" type="bool" value="true"/>
-  </property>
-</channel>
-EOF
-fi
-
-
 printf '\n============================================================\n'
 printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
@@ -250,8 +139,9 @@ printf '     - Remmina\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
+printf '     - file explorer SMB capability\n'
 printf '============================================================\n\n'
-yes '' | apt-get install \
+apt-get install \
     realtek-rtl88xxau-dkms \
     golang \
     docker.io \
@@ -270,7 +160,8 @@ yes '' | apt-get install \
     nfs-kernel-server \
     dnsmasq \
     hcxtools \
-    gnome-terminal
+    gnome-terminal \
+    gvfs-backends # smb in file explorer
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
@@ -281,7 +172,8 @@ echo '{"bip":"172.16.199.1/24"}' > /etc/docker/daemon.json
 systemctl enable docker --now
 
 # initialize mitmproxy cert
-mitmproxy &
+mitmproxy &>/dev/null &
+sleep 5
 killall mitmproxy
 # trust certificate
 cp ~/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
@@ -307,10 +199,23 @@ fgrep 'unmanaged-devices' &>/dev/null /etc/NetworkManager/NetworkManager.conf ||
 
 
 printf '\n============================================================\n'
+printf '[+] Setting Default Terminal\n'
+printf '============================================================\n\n'
+# set default terminal
+touch ~/.config/xfce4/helpers.rc
+sed -i '/TerminalEmulator=.*/c\' ~/.config/xfce4/helpers.rc
+echo 'TerminalEmulator=gnome-terminal' >> ~/.config/xfce4/helpers.rc
+# disable menus in gnome terminal
+gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
+# disable "close terminal?" prompt
+gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
+
+
+printf '\n============================================================\n'
 printf '[+] Updating System\n'
 printf '============================================================\n\n'
-yes '' | apt-get update
-yes '' | apt-get upgrade
+apt-get update
+apt-get upgrade
 
 
 printf '\n============================================================\n'
@@ -347,24 +252,15 @@ fi
 printf '\n============================================================\n'
 printf '[+] Installing Chromium\n'
 printf '============================================================\n\n'
-yes '' | apt-get install chromium
+apt-get install chromium
 sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
-
-
-printf '\n============================================================\n'
-printf '[+] Installing Zmap Asset Inventory\n'
-printf '============================================================\n\n'
-cd /root/Downloads
-mv zmap-asset-inventory "zmap-asset-inventory.bak$(date +%s)" &> /dev/null
-git clone https://github.com/blacklanternsecurity/zmap-asset-inventory
-docker build --network host -t zmap-assets zmap-asset-inventory
 
 
 printf '\n============================================================\n'
 printf '[+] Installing Bloodhound\n'
 printf '============================================================\n\n'
 # uninstall old version
-yes '' | apt-get remove bloodhound
+apt-get remove bloodhound
 rm -rf /opt/BloodHound-linux-x64 &>/dev/null
 
 # download latest bloodhound release from github
@@ -381,11 +277,11 @@ chmod +x /usr/local/bin/bloodhound
 # install Neo4J
 wget -O - https://debian.neo4j.org/neotechnology.gpg.key | apt-key add -
 echo 'deb https://debian.neo4j.org/repo stable/' > /etc/apt/sources.list.d/neo4j.list
-yes '' | apt-get update
-yes '' | apt-get install neo4j
+apt-get update
+apt-get install neo4j
 
 # increase open file limit
-yes '' | apt-get install neo4j gconf-service gconf2-common libgconf-2-4
+apt-get install neo4j gconf-service gconf2-common libgconf-2-4
 mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
 grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
 root   hard    nofile  600000' >> /etc/security/limits.conf
@@ -401,11 +297,10 @@ ln -s /opt/cypheroth ~/Downloads/cypheroth
 ln -s /opt/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
 
 
-
 printf '\n============================================================\n'
 printf '[+] Installing Bettercap\n'
 printf '============================================================\n\n'
-yes '' | apt-get install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
+apt-get install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
 go get -v github.com/bettercap/bettercap
 
 
@@ -435,8 +330,8 @@ go get -v github.com/sensepost/gowitness
 printf '\n============================================================\n'
 printf '[+] Installing PCredz\n'
 printf '============================================================\n\n'
-yes '' | apt-get remove python-pypcap
-yes '' | apt-get install python-libpcap
+apt-get remove python-pypcap
+apt-get install python-libpcap
 cd /opt
 git clone https://github.com/lgandx/PCredz.git
 ln -s /opt/PCredz/Pcredz.py /usr/local/bin/pcredz
@@ -457,7 +352,7 @@ printf '============================================================\n\n'
 cme_dir="$(ls -d /root/.local/share/virtualenvs/* | grep CrackMapExec | head -n 1)"
 if [[ ! -z "$cme_dir" ]]; then rm -r "$cme_dir" &>/dev/null; fi
 rm -rf /opt/CrackMapExec &>/dev/null
-yes '' | apt-get install libssl-dev libffi-dev python-dev build-essential
+apt-get install libssl-dev libffi-dev python-dev build-essential
 cd /opt
 git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec
 cd CrackMapExec && python2 -m pipenv install
@@ -466,7 +361,7 @@ python2 -m pipenv run python setup.py install
 #ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
 ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Downloads/crackmapexec
 cd / && rm -r /opt/CrackMapExec
-yes '' | apt-get install crackmapexec
+apt-get install crackmapexec
 
 
 printf '\n============================================================\n'
@@ -487,10 +382,10 @@ printf '\n============================================================\n'
 printf '[+] Installing Sublime Text\n'
 printf '============================================================\n\n'
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | apt-key add -
-yes '' | apt-get install apt-transport-https
+apt-get install apt-transport-https
 echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
-yes '' | apt-get update
-yes '' | apt-get install sublime-text
+apt-get update
+apt-get install sublime-text
 
 
 printf '\n============================================================\n'
@@ -499,7 +394,7 @@ printf '============================================================\n\n'
 boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
 cd /opt
 wget -O boostnote.deb "$boost_deb_url"
-yes '' | apt-get install gconf2 gvfs-bin
+apt-get install gconf2 gvfs-bin
 dpkg -i boostnote.deb
 rm boostnote.deb
 
@@ -534,14 +429,6 @@ profile=${profile:1:-1}
 gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
 # bring back minimize/maxminize buttons
 gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
-
-
-printf '\n============================================================\n'
-printf '[+] Enabling Tap-to-click\n'
-printf '============================================================\n\n'
-gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int
 
 
 printf '\n============================================================\n'
@@ -586,3 +473,121 @@ printf '============================================================\n\n'
 
 # restart systemd-networkd for LL-MNR disablement
 systemctl restart systemd-networkd
+
+
+if [ -n "$remove_i3" ]
+then
+
+    printf '\n============================================================\n'
+    printf '[+] Removing i3\n'
+    printf '============================================================\n\n'
+    rm ~/.config/autostart/i3.desktop
+    rm ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+    rm -r ~/.cache/sessions
+fi
+
+
+if [ -n "$install_i3" ]
+then
+
+    printf '\n============================================================\n'
+    printf '[+] Installing i3\n'
+    printf '============================================================\n\n'
+    # install dependencies
+    apt-get install i3 j4-dmenu-desktop fonts-hack feh
+    # make startup script
+    echo '#!/bin/bash
+xrandr --output eDP-1 --mode 1920x1080
+sleep 1
+feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+' > /root/.config/i3_startup.sh
+
+    # set up config
+    grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
+### KALI SETUP SCRIPT ###
+# win+L lock screen
+# bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+# win+E file explorer
+# bindsym $sup+e exec thunar
+# resolution / wallpaper
+exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
+
+# BLS theme
+# class             border  background  text        indicator   child_border
+client.focused      #666666 #666666     #FFFFFF     #FFFFFF     #666666
+' >> /etc/i3/config.keycodes
+
+    # gnome terminal
+    sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
+    # improved dmenu
+    sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
+    # mod+shift+e logs out of gnome
+    sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec xfce4-session-logout/g' /etc/i3/config.keycodes
+    # hack font
+    sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
+    # focus child
+    sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
+    sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
+
+    # get rid of saved sessions
+    rm -r /root/.cache/sessions/*
+
+    # hide xfwm
+    sed -i '/export GOPATH=.*/c\' /usr/share/applications/xfce-wm-settings.desktop
+    echo 'Hidden=true' >> /usr/share/applications/xfce-wm-settings.desktop
+
+    # create i3 autostart file
+    mkdir -p /root/.config/autostart 2>/dev/null
+    cat <<EOF > /root/.config/autostart/i3.desktop
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.9.4
+Type=Application
+Name=i3
+Comment=i3
+Exec=i3
+OnlyShowIn=XFCE;
+RunHook=0
+StartupNotify=false
+Terminal=false
+Hidden=false
+EOF
+
+    # create XFCE session
+    mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null
+    cat <<EOF > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-session" version="1.0">
+  <property name="general" type="empty">
+    <property name="FailsafeSessionName" type="string" value="Failsafe"/>
+    <property name="LockCommand" type="string" value=""/>
+  </property>
+  <property name="sessions" type="empty">
+    <property name="Failsafe" type="empty">
+      <property name="IsFailsafe" type="bool" value="true"/>
+      <property name="Count" type="int" value="1"/>
+      <property name="Client0_Command" type="array">
+        <value type="string" value="xfsettingsd"/>
+      </property>
+      <property name="Client0_PerScreen" type="bool" value="false"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+fi
+
+
+if [ -z "$no_zmap" ]
+then
+
+    printf '\n============================================================\n'
+    printf '[+] Installing Zmap Asset Inventory\n'
+    printf '============================================================\n\n'
+    cd /root/Downloads
+    mv zmap-asset-inventory "zmap-asset-inventory.bak$(date +%s)" &> /dev/null
+    git clone https://github.com/blacklanternsecurity/zmap-asset-inventory
+    docker build --network host -t zmap-assets zmap-asset-inventory
+
+fi
