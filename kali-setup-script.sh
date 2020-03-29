@@ -43,6 +43,11 @@ then
     exit 1
 fi
 
+# fix bashrc
+cp /root/.bashrc /root/.bashrc.bak
+cp "/home/$(fgrep 1000:1000 /etc/passwd | cut -d: -f1)/.bashrc" /root/.bashrc
+. /root/.bashrc
+
 # enable command aliasing
 shopt -s expand_aliases
 
