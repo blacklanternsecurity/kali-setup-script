@@ -2,8 +2,7 @@
 
 Prepares Kali for a pentest by enabling session logging, installing tools, and making common configuration changes
 
-<img alt="Gnome" src="https://i.imgur.com/pXh7AUu.png" width=500>
-<img alt="i3 + Gnome" src="https://i.imgur.com/DEEJhvO.png" width=400>
+<img alt="XFCE + Gnome" src="https://user-images.githubusercontent.com/20261699/77855493-cd481680-71be-11ea-8019-20681c643b0d.PNG" width=500>
 
 ## NOTE: THIS SCRIPT ASSUMES YOU ARE RUNNING AS ROOT (LIKE IN THE OLD DAYS)
 ## NON-ROOT USERS ARE NOT SUPPORTED
