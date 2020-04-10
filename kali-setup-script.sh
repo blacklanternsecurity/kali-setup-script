@@ -37,9 +37,9 @@ do
 done
 
 # make sure we're root
-if [[ "$EUID" -ne 0 ]]
+if [ "$HOME" != "/root" ]
 then
-    printf "Please run as root\n"
+    printf "Please run while logged in as root\n"
     exit 1
 fi
 
@@ -56,30 +56,8 @@ export DEBIAN_FRONTEND=noninteractive
 alias apt-get='yes "" | apt-get -o Dpkg::Options::="--force-confdef" -y'
 apt-get update
 
-
-printf '\n============================================================\n'
-printf '[+] Enabling Tap-to-click\n'
-printf '============================================================\n\n'
-gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1 --create
-xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int --create
-
-
-printf '\n============================================================\n'
-printf '[+] Disabling Auto-lock, Sleep on AC\n'
-printf '============================================================\n\n'
-# disable session idle
-gsettings set org.gnome.desktop.session idle-delay 0
-# disable sleep when on AC power
-gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
-# disable screen timeout on AC
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0 --create --type int
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0 --create --type int
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0 --create --type int
-# disable sleep when on AC
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14 --create --type int
-# hibernate when power is critical
-xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2 --create --type int
+# make sure Downloads folder exists
+mkdir -p ~/Downloads 2>/dev/null
 
 
 printf '\n============================================================\n'
@@ -105,54 +83,27 @@ apt-get remove gnome-software
 
 
 printf '\n============================================================\n'
-printf '[+] Setting Theme\n'
-printf '============================================================\n\n'
-# dark theme
-# gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
-wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
-if [[ -z "$wallpaper_file" ]]
-then
-    wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
-else
-    cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
-fi
-gsettings set org.gnome.desktop.background primary-color "#000000"
-gsettings set org.gnome.desktop.background secondary-color "#000000"
-gsettings set org.gnome.desktop.background color-shading-type "solid"
-gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-gsettings set org.gnome.desktop.background picture-options scaled
-xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-
-
-printf '\n============================================================\n'
 printf '[+] Installing:\n'
 printf '     - wireless drivers\n'
 printf '     - golang & environment\n'
 printf '     - docker\n'
 printf '     - powershell\n'
-printf '     - gnome-screenshot\n'
 printf '     - terminator\n'
 printf '     - pip & pipenv\n'
 printf '     - mitmproxy\n'
 printf '     - patator\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
-printf '     - LibreOffice\n'
 printf '     - htop\n'
-printf '     - Remmina\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
-printf '     - file explorer SMB capability\n'
 printf '============================================================\n\n'
 apt-get install \
     realtek-rtl88xxau-dkms \
     golang \
     docker.io \
     powershell \
-    gnome-screenshot \
     terminator \
     python-pip \
     python3-dev \
@@ -161,14 +112,11 @@ apt-get install \
     net-tools \
     vncsnapshot \
     zmap \
-    libreoffice \
     htop \
-    remmina \
     nfs-kernel-server \
     dnsmasq \
     hcxtools \
-    gnome-terminal \
-    gvfs-backends # smb in file explorer
+    mosh
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
@@ -206,102 +154,10 @@ fgrep 'unmanaged-devices' &>/dev/null /etc/NetworkManager/NetworkManager.conf ||
 
 
 printf '\n============================================================\n'
-printf '[+] Setting Default Terminal\n'
-printf '============================================================\n\n'
-# set default terminal
-touch ~/.config/xfce4/helpers.rc
-sed -i '/TerminalEmulator=.*/c\' ~/.config/xfce4/helpers.rc
-echo 'TerminalEmulator=gnome-terminal' >> ~/.config/xfce4/helpers.rc
-# disable menus in gnome terminal
-gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
-# disable "close terminal?" prompt
-gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
-
-
-printf '\n============================================================\n'
 printf '[+] Updating System\n'
 printf '============================================================\n\n'
 apt-get update
 apt-get upgrade
-
-
-printf '\n============================================================\n'
-printf '[+] Installing Firefox\n'
-printf '============================================================\n\n'
-if [[ ! -f /usr/share/applications/firefox.desktop ]]
-then
-    wget -O /tmp/firefox.tar.bz2 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
-    cd /opt
-    tar -xvjf /tmp/firefox.tar.bz2
-    if [[ -f /usr/bin/firefox ]]; then mv /usr/bin/firefox /usr/bin/firefox.bak; fi
-    ln -s /opt/firefox/firefox /usr/bin/firefox
-    rm /tmp/firefox.tar.bz2
-
-    cat <<EOF > /usr/share/applications/firefox.desktop
-[Desktop Entry]
-Name=Firefox
-Comment=Browse the World Wide Web
-GenericName=Web Browser
-X-GNOME-FullName=Firefox Web Browser
-Exec=/opt/firefox/firefox %u
-Terminal=false
-X-MultipleArgs=false
-Type=Application
-Icon=firefox-esr
-Categories=Network;WebBrowser;
-MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
-StartupWMClass=Firefox-esr
-StartupNotify=true
-EOF
-fi
-
-
-printf '\n============================================================\n'
-printf '[+] Installing Chromium\n'
-printf '============================================================\n\n'
-apt-get install chromium
-sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
-
-
-printf '\n============================================================\n'
-printf '[+] Installing Bloodhound\n'
-printf '============================================================\n\n'
-# uninstall old version
-apt-get remove bloodhound
-rm -rf /opt/BloodHound-linux-x64 &>/dev/null
-
-# download latest bloodhound release from github
-release_url="https://github.com/$(curl -s https://github.com/BloodHoundAD/BloodHound/releases | egrep -o '/BloodHoundAD/BloodHound/releases/download/.{1,10}/BloodHound-linux-x64.zip' | head -n 1)"
-cd /opt
-wget "$release_url"
-unzip -o 'BloodHound-linux-x64.zip'
-rm 'BloodHound-linux-x64.zip'
-
-# fix white screen issue
-echo -e '#!/bin/bash\n/opt/BloodHound-linux-x64/BloodHound --no-sandbox $@' > /usr/local/bin/bloodhound
-chmod +x /usr/local/bin/bloodhound
-
-# install Neo4J
-wget -O - https://debian.neo4j.org/neotechnology.gpg.key | apt-key add -
-echo 'deb https://debian.neo4j.org/repo stable/' > /etc/apt/sources.list.d/neo4j.list
-apt-get update
-apt-get install neo4j
-
-# increase open file limit
-apt-get install neo4j gconf-service gconf2-common libgconf-2-4
-mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
-grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
-root   hard    nofile  600000' >> /etc/security/limits.conf
-grep 'NEO4J_ULIMIT_NOFILE=60000' /etc/default/neo4j 2>/dev/null || echo 'NEO4J_ULIMIT_NOFILE=60000' >> /etc/default/neo4j
-grep 'fs.file-max' /etc/sysctl.conf 2>/dev/null || echo 'fs.file-max=500000' >> /etc/sysctl.conf
-sysctl -p
-neo4j start
-
-# install cypheroth, which automates bloodhound queries & outputs to CSV
-cd /opt
-git clone https://github.com/seajaysec/cypheroth
-ln -s /opt/cypheroth ~/Downloads/cypheroth
-ln -s /opt/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
 
 
 printf '\n============================================================\n'
@@ -386,30 +242,9 @@ cd / && rm -r /opt/impacket
 
 
 printf '\n============================================================\n'
-printf '[+] Installing Sublime Text\n'
-printf '============================================================\n\n'
-wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | apt-key add -
-apt-get install apt-transport-https
-echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
-apt-get update
-apt-get install sublime-text
-
-
-printf '\n============================================================\n'
-printf '[+] Installing BoostNote\n'
-printf '============================================================\n\n'
-boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
-cd /opt
-wget -O boostnote.deb "$boost_deb_url"
-apt-get install gconf2 gvfs-bin
-dpkg -i boostnote.deb
-rm boostnote.deb
-
-
-printf '\n============================================================\n'
 printf '[+] Enabling bash session logging\n'
 printf '============================================================\n\n'
-grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" ]; then
+grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" && -z "$TMUX" ]; then
         logdir=$HOME/Logs
         if [ ! -d $logdir ]; then
                 mkdir $logdir
@@ -423,22 +258,6 @@ fi' >> ~/.bashrc
 
 
 printf '\n============================================================\n'
-printf '[+] Disabling Animations\n'
-printf '============================================================\n\n'
-gsettings set org.gnome.desktop.interface enable-animations false
-
-
-printf '\n============================================================\n'
-printf '[+] Disabling Terminal Transparency\n'
-printf '============================================================\n\n'
-profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
-profile=${profile:1:-1}
-gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
-# bring back minimize/maxminize buttons
-gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
-
-
-printf '\n============================================================\n'
 printf '[+] Initializing Metasploit Database\n'
 printf '============================================================\n\n'
 systemctl start postgresql
@@ -446,11 +265,11 @@ systemctl enable postgresql
 msfdb init
 
 
-printf '\n============================================================\n'
-printf '[+] Disabling grub quiet mode\n'
-printf '============================================================\n\n'
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
-grub-mkconfig -o /boot/grub/grub.cfg
+# printf '\n============================================================\n'
+# printf '[+] Disabling grub quiet mode\n'
+# printf '============================================================\n\n'
+# sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
+# grub-mkconfig -o /boot/grub/grub.cfg
 
 
 printf '\n============================================================\n'
@@ -458,28 +277,6 @@ printf '[+] Unzipping RockYou\n'
 printf '============================================================\n\n'
 gunzip /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 ln -s /usr/share/wordlists ~/Downloads/wordlists 2>/dev/null
-
-
-printf '\n============================================================\n'
-printf '[+] Cleaning Up\n'
-printf '============================================================\n\n'
-# this seems to remove undesired packages
-#apt-get -y autoremove
-#apt-get -y autoclean
-updatedb
-rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
-gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
-
-
-printf '\n============================================================\n'
-printf "[+] Done. Don't forget to reboot! :)\n"
-printf "[+] You may also want to install:\n"
-printf '     - BurpSuite Pro\n'
-printf '     - Firefox Add-Ons\n'
-printf '============================================================\n\n'
-
-# restart systemd-networkd for LL-MNR disablement
-systemctl restart systemd-networkd
 
 
 if [ -n "$remove_i3" ]
@@ -600,3 +397,227 @@ then
     docker build --network host -t zmap-assets zmap-asset-inventory
 
 fi
+
+
+
+
+# if we're not on a headless system
+if [ -n "$DISPLAY" ]
+then
+
+
+    printf '\n============================================================\n'
+    printf '[+] Enabling Tap-to-click\n'
+    printf '============================================================\n\n'
+    gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1 --create
+    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int --create
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Auto-lock, Sleep on AC\n'
+    printf '============================================================\n\n'
+    # disable session idle
+    gsettings set org.gnome.desktop.session idle-delay 0
+    # disable sleep when on AC power
+    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+    # disable screen timeout on AC
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0 --create --type int
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0 --create --type int
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0 --create --type int
+    # disable sleep when on AC
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14 --create --type int
+    # hibernate when power is critical
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2 --create --type int
+
+
+    printf '\n============================================================\n'
+    printf '[+] Setting Theme\n'
+    printf '============================================================\n\n'
+    # dark theme
+    # gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+    mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
+    wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
+    if [[ -z "$wallpaper_file" ]]
+    then
+        wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+    else
+        cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+    fi
+    gsettings set org.gnome.desktop.background primary-color "#000000"
+    gsettings set org.gnome.desktop.background secondary-color "#000000"
+    gsettings set org.gnome.desktop.background color-shading-type "solid"
+    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+    gsettings set org.gnome.desktop.background picture-options scaled
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing:\n'
+    printf '     - gnome-screenshot\n'
+    printf '     - LibreOffice\n'
+    printf '     - Remmina\n'
+    printf '     - gnome-terminal\n'
+    printf '     - mosh\n'
+    printf '     - file explorer SMB capability\n'
+    printf '============================================================\n\n'
+    apt-get install \
+        gnome-screenshot \
+        libreoffice \
+        remmina \
+        gnome-terminal \
+        gvfs-backends # smb in file explorer
+
+
+    printf '\n============================================================\n'
+    printf '[+] Setting Default Terminal\n'
+    printf '============================================================\n\n'
+    # set default terminal
+    touch ~/.config/xfce4/helpers.rc
+    sed -i '/TerminalEmulator=.*/c\' ~/.config/xfce4/helpers.rc
+    echo 'TerminalEmulator=gnome-terminal' >> ~/.config/xfce4/helpers.rc
+    # disable menus in gnome terminal
+    gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
+    # disable "close terminal?" prompt
+    gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Animations\n'
+    printf '============================================================\n\n'
+    gsettings set org.gnome.desktop.interface enable-animations false
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Terminal Transparency\n'
+    printf '============================================================\n\n'
+    profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
+    profile=${profile:1:-1}
+    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
+    # bring back minimize/maxminize buttons
+    gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing Bloodhound\n'
+    printf '============================================================\n\n'
+    # uninstall old version
+    apt-get remove bloodhound
+    rm -rf /opt/BloodHound-linux-x64 &>/dev/null
+
+    # download latest bloodhound release from github
+    release_url="https://github.com/$(curl -s https://github.com/BloodHoundAD/BloodHound/releases | egrep -o '/BloodHoundAD/BloodHound/releases/download/.{1,10}/BloodHound-linux-x64.zip' | head -n 1)"
+    cd /opt
+    wget "$release_url"
+    unzip -o 'BloodHound-linux-x64.zip'
+    rm 'BloodHound-linux-x64.zip'
+
+    # fix white screen issue
+    echo -e '#!/bin/bash\n/opt/BloodHound-linux-x64/BloodHound --no-sandbox $@' > /usr/local/bin/bloodhound
+    chmod +x /usr/local/bin/bloodhound
+
+    # install Neo4J
+    wget -O - https://debian.neo4j.org/neotechnology.gpg.key | apt-key add -
+    echo 'deb https://debian.neo4j.org/repo stable/' > /etc/apt/sources.list.d/neo4j.list
+    apt-get update
+    apt-get install neo4j
+
+    # increase open file limit
+    apt-get install neo4j gconf-service gconf2-common libgconf-2-4
+    mkdir -p /usr/share/neo4j/logs /usr/share/neo4j/run
+    grep '^root   soft    nofile' /etc/security/limits.conf || echo 'root   soft    nofile  500000
+    root   hard    nofile  600000' >> /etc/security/limits.conf
+    grep 'NEO4J_ULIMIT_NOFILE=60000' /etc/default/neo4j 2>/dev/null || echo 'NEO4J_ULIMIT_NOFILE=60000' >> /etc/default/neo4j
+    grep 'fs.file-max' /etc/sysctl.conf 2>/dev/null || echo 'fs.file-max=500000' >> /etc/sysctl.conf
+    sysctl -p
+    neo4j start
+
+    # install cypheroth, which automates bloodhound queries & outputs to CSV
+    cd /opt
+    git clone https://github.com/seajaysec/cypheroth
+    ln -s /opt/cypheroth ~/Downloads/cypheroth
+    ln -s /opt/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing Firefox\n'
+    printf '============================================================\n\n'
+    if [[ ! -f /usr/share/applications/firefox.desktop ]]
+    then
+        wget -O /tmp/firefox.tar.bz2 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
+        cd /opt
+        tar -xvjf /tmp/firefox.tar.bz2
+        if [[ -f /usr/bin/firefox ]]; then mv /usr/bin/firefox /usr/bin/firefox.bak; fi
+        ln -s /opt/firefox/firefox /usr/bin/firefox
+        rm /tmp/firefox.tar.bz2
+
+        cat <<EOF > /usr/share/applications/firefox.desktop
+[Desktop Entry]
+Name=Firefox
+Comment=Browse the World Wide Web
+GenericName=Web Browser
+X-GNOME-FullName=Firefox Web Browser
+Exec=/opt/firefox/firefox %u
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=firefox-esr
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=Firefox-esr
+StartupNotify=true
+EOF
+fi
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing Chromium\n'
+    printf '============================================================\n\n'
+    apt-get install chromium
+    sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing Sublime Text\n'
+    printf '============================================================\n\n'
+    wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | apt-key add -
+    apt-get install apt-transport-https
+    echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
+    apt-get update
+    apt-get install sublime-text
+
+
+    printf '\n============================================================\n'
+    printf '[+] Installing BoostNote\n'
+    printf '============================================================\n\n'
+    boost_deb_url="https://github.com$(curl -Ls https://github.com/BoostIO/boost-releases/releases/latest | egrep -o '/BoostIO/boost-releases/releases/download/.+.deb')"
+    cd /opt
+    wget -O boostnote.deb "$boost_deb_url"
+    apt-get install gconf2 gvfs-bin
+    dpkg -i boostnote.deb
+    rm boostnote.deb
+
+
+    printf '\n============================================================\n'
+    printf '[+] Cleaning Up\n'
+    printf '============================================================\n\n'
+    # this seems to remove undesired packages
+    #apt-get -y autoremove
+    #apt-get -y autoclean
+    updatedb
+    rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
+    gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
+
+fi
+
+
+printf '\n============================================================\n'
+printf "[+] Done. Don't forget to reboot! :)\n"
+printf "[+] You may also want to install:\n"
+printf '     - BurpSuite Pro\n'
+printf '     - Firefox Add-Ons\n'
+printf '============================================================\n\n'
+
+# restart systemd-networkd for LL-MNR disablement
+systemctl restart systemd-networkd
