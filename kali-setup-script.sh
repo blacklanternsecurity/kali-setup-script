@@ -53,7 +53,7 @@ shopt -s expand_aliases
 
 # skip prompts in apt-upgrade, etc.
 export DEBIAN_FRONTEND=noninteractive
-alias apt-get='yes "" | apt-get -o Dpkg::Options::="--force-confdef" -y'
+alias apt-get='apt-get -o Dpkg::Options::="--force-confdef" -y'
 apt-get update
 
 # make sure Downloads folder exists
