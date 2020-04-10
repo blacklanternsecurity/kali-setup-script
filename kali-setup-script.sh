@@ -53,11 +53,16 @@ shopt -s expand_aliases
 
 # skip prompts in apt-upgrade, etc.
 export DEBIAN_FRONTEND=noninteractive
-alias apt-get='apt-get -o Dpkg::Options::="--force-confdef" -y'
+alias apt-get='yes "" | apt-get -o Dpkg::Options::="--force-confdef" -y'
 apt-get update
 
 # make sure Downloads folder exists
 mkdir -p ~/Downloads 2>/dev/null
+
+# install pip
+cd /root/Downloads
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python get-pip.py
 
 
 printf '\n============================================================\n'
@@ -105,7 +110,6 @@ apt-get install \
     docker.io \
     powershell \
     terminator \
-    python-pip \
     python3-dev \
     python3-pip \
     patator \
