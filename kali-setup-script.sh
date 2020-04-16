@@ -248,7 +248,7 @@ cd / && rm -r /opt/impacket
 printf '\n============================================================\n'
 printf '[+] Enabling bash session logging\n'
 printf '============================================================\n\n'
-grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [ -z "$UNDER_SCRIPT" && -z "$TMUX" ]; then
+grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [[ -z "$UNDER_SCRIPT" && -z "$TMUX" ]]; then
         logdir=$HOME/Logs
         if [ ! -d $logdir ]; then
                 mkdir $logdir
