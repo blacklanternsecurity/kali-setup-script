@@ -59,7 +59,7 @@ apt-get update
 # make sure Downloads folder exists
 mkdir -p ~/Downloads 2>/dev/null
 
-# install pip
+# install pip because FUCKING OFFSEC removed it from the kali repos
 cd /root/Downloads
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py
@@ -120,7 +120,8 @@ apt-get install \
     nfs-kernel-server \
     dnsmasq \
     hcxtools \
-    mosh
+    mosh \
+    vim
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
@@ -195,6 +196,23 @@ go get -v github.com/sensepost/gowitness
 
 
 printf '\n============================================================\n'
+printf '[+] Installing MAN-SPIDER\n'
+printf '============================================================\n\n'
+rm -r $(ls /root/.local/share/virtualenvs | grep MANSPIDER | head -n 1) &>/dev/null
+rm -r /opt/MANSPIDER &>/dev/null
+cd /opt
+git clone https://github.com/blacklanternsecurity/MANSPIDER
+cd MANSPIDER && python3 -m pipenv install -r requirements.txt
+ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep MANSPIDER | head -n 1)/bin ~/Downloads/MANSPIDER
+
+
+printf '\n============================================================\n'
+printf '[+] Installing bloodhound.py\n'
+printf '============================================================\n\n'
+pip install bloodhound
+
+
+printf '\n============================================================\n'
 printf '[+] Installing PCredz\n'
 printf '============================================================\n\n'
 apt-get remove python-pypcap
@@ -208,7 +226,7 @@ printf '\n============================================================\n'
 printf '[+] Installing EavesARP\n'
 printf '============================================================\n\n'
 cd ~/Downloads
-git clone https://github.com/arch4ngel/eavesarp
+git clone https://github.com/mmatoscom/eavesarp
 cd eavesarp && python3 -m pip install -r requirements.txt
 cd && ln -s ~/Downloads/eavesarp/eavesarp.py /usr/local/bin/eavesarp
 
@@ -606,7 +624,8 @@ fi
     printf '\n============================================================\n'
     printf '[+] Cleaning Up\n'
     printf '============================================================\n\n'
-    # this seems to remove undesired packages
+    # this removes waaayyyy more than it's supposed to
+    # I blame offsec
     #apt-get -y autoremove
     #apt-get -y autoclean
     updatedb
@@ -622,6 +641,3 @@ printf "[+] You may also want to install:\n"
 printf '     - BurpSuite Pro\n'
 printf '     - Firefox Add-Ons\n'
 printf '============================================================\n\n'
-
-# restart systemd-networkd for LL-MNR disablement
-systemctl restart systemd-networkd
