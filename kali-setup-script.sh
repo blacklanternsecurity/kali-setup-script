@@ -226,7 +226,7 @@ printf '\n============================================================\n'
 printf '[+] Installing EavesARP\n'
 printf '============================================================\n\n'
 cd ~/Downloads
-git clone https://github.com/arch4ngel/eavesarp
+git clone https://github.com/mmatoscom/eavesarp
 cd eavesarp && python3 -m pip install -r requirements.txt
 cd && ln -s ~/Downloads/eavesarp/eavesarp.py /usr/local/bin/eavesarp
 
