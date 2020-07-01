@@ -59,6 +59,93 @@ apt-get update
 # make sure Downloads folder exists
 mkdir -p ~/Downloads 2>/dev/null
 
+
+# if we're not on a headless system
+if [ -n "$DISPLAY" ]
+then
+
+
+    printf '\n============================================================\n'
+    printf '[+] Enabling Tap-to-click\n'
+    printf '============================================================\n\n'
+    gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1 --create
+    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int --create
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Auto-lock, Sleep on AC\n'
+    printf '============================================================\n\n'
+    # disable session idle
+    gsettings set org.gnome.desktop.session idle-delay 0
+    # disable sleep when on AC power
+    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+    # disable screen timeout on AC
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0 --create --type int
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0 --create --type int
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0 --create --type int
+    # disable sleep when on AC
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14 --create --type int
+    # hibernate when power is critical
+    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2 --create --type int
+
+
+    printf '\n============================================================\n'
+    printf '[+] Setting Theme\n'
+    printf '============================================================\n\n'
+    # dark theme
+    # gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+    mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
+    wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
+    if [[ -z "$wallpaper_file" ]]
+    then
+        wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+    else
+        cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+    fi
+    gsettings set org.gnome.desktop.background primary-color "#000000"
+    gsettings set org.gnome.desktop.background secondary-color "#000000"
+    gsettings set org.gnome.desktop.background color-shading-type "solid"
+    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+    gsettings set org.gnome.desktop.background picture-options scaled
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+
+
+    printf '\n============================================================\n'
+    printf '[+] Setting Default Terminal\n'
+    printf '============================================================\n\n'
+    apt-get install gnome-terminal
+    # set default terminal
+    touch ~/.config/xfce4/helpers.rc
+    sed -i '/TerminalEmulator=.*/c\' ~/.config/xfce4/helpers.rc
+    echo 'TerminalEmulator=gnome-terminal' >> ~/.config/xfce4/helpers.rc
+    # disable menus in gnome terminal
+    gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
+    # disable "close terminal?" prompt
+    gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Animations\n'
+    printf '============================================================\n\n'
+    gsettings set org.gnome.desktop.interface enable-animations false
+
+
+    printf '\n============================================================\n'
+    printf '[+] Disabling Terminal Transparency\n'
+    printf '============================================================\n\n'
+    profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
+    profile=${profile:1:-1}
+    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
+    # bring back minimize/maxminize buttons
+    gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
+
+
+fi
+
+
+
 # install pip because FUCKING OFFSEC removed it from the kali repos
 cd /root/Downloads
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -139,7 +226,7 @@ killall mitmproxy
 cp ~/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
 update-ca-certificates
 
-mkdir -p /root/go
+mkdir -p /root/.go
 gopath_exp='export GOPATH="$HOME/.go"'
 path_exp='export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"'
 sed -i '/export GOPATH=.*/c\' ~/.profile
@@ -175,7 +262,7 @@ go get -v github.com/bettercap/bettercap
 printf '\n============================================================\n'
 printf '[+] Installing EapHammer\n'
 printf '============================================================\n\n'
-cd /opt
+cd ~/Downloads
 git clone https://github.com/s0lst1c3/eaphammer.git
 cd eaphammer
 apt-get install $(grep -vE "^\s*#" kali-dependencies.txt  | tr "\n" " ")
@@ -185,8 +272,7 @@ sed -i 's/.*input.*update your package list.*/    if False:/g' kali-setup
 sed -i 's/.*input.*upgrade your installed packages.*/    if False:/g' kali-setup
 sed -i 's/.*apt.* install.*//g' kali-setup
 ./kali-setup
-ln -s /opt/eaphammer ~/Downloads/eaphammer
-ln -s /opt/eaphammer/eaphammer /usr/local/bin/eaphammer
+ln -s ~/Downloads/eaphammer/eaphammer /usr/local/bin/eaphammer
 
 
 printf '\n============================================================\n'
@@ -198,12 +284,9 @@ go get -v github.com/sensepost/gowitness
 printf '\n============================================================\n'
 printf '[+] Installing MAN-SPIDER\n'
 printf '============================================================\n\n'
-rm -r $(ls /root/.local/share/virtualenvs | grep MANSPIDER | head -n 1) &>/dev/null
-rm -r /opt/MANSPIDER &>/dev/null
-cd /opt
+cd ~/Downloads
 git clone https://github.com/blacklanternsecurity/MANSPIDER
 cd MANSPIDER && python3 -m pipenv install -r requirements.txt
-ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep MANSPIDER | head -n 1)/bin ~/Downloads/MANSPIDER
 
 
 printf '\n============================================================\n'
@@ -217,9 +300,9 @@ printf '[+] Installing PCredz\n'
 printf '============================================================\n\n'
 apt-get remove python-pypcap
 apt-get install python-libpcap
-cd /opt
+cd ~/Downloads
 git clone https://github.com/lgandx/PCredz.git
-ln -s /opt/PCredz/Pcredz.py /usr/local/bin/pcredz
+ln -s ~/Downloads/PCredz/Pcredz /usr/local/bin/pcredz
 
 
 printf '\n============================================================\n'
@@ -235,32 +318,23 @@ printf '\n============================================================\n'
 printf '[+] Installing CrackMapExec\n'
 printf '============================================================\n\n'
 cme_dir="$(ls -d /root/.local/share/virtualenvs/* | grep CrackMapExec | head -n 1)"
-if [[ ! -z "$cme_dir" ]]; then rm -r "$cme_dir" &>/dev/null; fi
-rm -rf /opt/CrackMapExec &>/dev/null
+if [[ ! -z "$cme_dir" ]]; then rm -r "${cme_dir}.bak"; mv "${cme_dir}" "${cme_dir}.bak"; fi
 apt-get install libssl-dev libffi-dev python-dev build-essential
-cd /opt
+cd ~/Downloads
 git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec
-cd CrackMapExec && python2 -m pipenv install
-python2 -m pipenv run python setup.py install
-#ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cme /usr/bin/cme
-#ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cmedb /usr/bin/cmedb
-ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin ~/Downloads/crackmapexec
-cd / && rm -r /opt/CrackMapExec
+cd CrackMapExec && python3 -m pipenv install
+python3 -m pipenv run python setup.py install
+ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep CrackMapExec | head -n 1)/bin/cme ~/usr/local/bin/cme
 apt-get install crackmapexec
 
 
 printf '\n============================================================\n'
 printf '[+] Installing Impacket\n'
 printf '============================================================\n\n'
-rm -r $(ls /root/.local/share/virtualenvs | grep impacket | head -n 1) &>/dev/null
-rm -r /opt/impacket &>/dev/null
-cd /opt
+cd ~/Downloads
 git clone https://github.com/CoreSecurity/impacket.git
-cd impacket && python2 -m pipenv install
-python2 -m pipenv run python setup.py install
-#ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin/*.py /usr/bin/
-ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep impacket | head -n 1)/bin ~/Downloads/impacket
-cd / && rm -r /opt/impacket
+cd impacket && python3 -m pipenv install
+python3 -m pipenv run python setup.py install
 
 
 printf '\n============================================================\n'
@@ -285,13 +359,6 @@ printf '============================================================\n\n'
 systemctl start postgresql
 systemctl enable postgresql
 msfdb init
-
-
-# printf '\n============================================================\n'
-# printf '[+] Disabling grub quiet mode\n'
-# printf '============================================================\n\n'
-# sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
-# grub-mkconfig -o /boot/grub/grub.cfg
 
 
 printf '\n============================================================\n'
@@ -427,60 +494,11 @@ fi
 if [ -n "$DISPLAY" ]
 then
 
-
-    printf '\n============================================================\n'
-    printf '[+] Enabling Tap-to-click\n'
-    printf '============================================================\n\n'
-    gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/libinput_Tapping_Enabled -n -t int -s 1 --create
-    xfconf-query -c pointers -p /SynPS2_Synaptics_TouchPad/Properties/Synaptics_Tap_Action -n -s 0 -s 0 -s 0 -s 0 -s 1 -s 3 -s 2 -t int -t int -t int -t int -t int -t int -t int --create
-
-
-    printf '\n============================================================\n'
-    printf '[+] Disabling Auto-lock, Sleep on AC\n'
-    printf '============================================================\n\n'
-    # disable session idle
-    gsettings set org.gnome.desktop.session idle-delay 0
-    # disable sleep when on AC power
-    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
-    # disable screen timeout on AC
-    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0 --create --type int
-    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0 --create --type int
-    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0 --create --type int
-    # disable sleep when on AC
-    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 14 --create --type int
-    # hibernate when power is critical
-    xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/critical-power-action -s 2 --create --type int
-
-
-    printf '\n============================================================\n'
-    printf '[+] Setting Theme\n'
-    printf '============================================================\n\n'
-    # dark theme
-    # gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-    mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
-    wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
-    if [[ -z "$wallpaper_file" ]]
-    then
-        wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
-    else
-        cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
-    fi
-    gsettings set org.gnome.desktop.background primary-color "#000000"
-    gsettings set org.gnome.desktop.background secondary-color "#000000"
-    gsettings set org.gnome.desktop.background color-shading-type "solid"
-    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-    gsettings set org.gnome.desktop.background picture-options scaled
-    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-
-
     printf '\n============================================================\n'
     printf '[+] Installing:\n'
     printf '     - gnome-screenshot\n'
     printf '     - LibreOffice\n'
     printf '     - Remmina\n'
-    printf '     - gnome-terminal\n'
     printf '     - mosh\n'
     printf '     - file explorer SMB capability\n'
     printf '============================================================\n\n'
@@ -488,38 +506,7 @@ then
         gnome-screenshot \
         libreoffice \
         remmina \
-        gnome-terminal \
         gvfs-backends # smb in file explorer
-
-
-    printf '\n============================================================\n'
-    printf '[+] Setting Default Terminal\n'
-    printf '============================================================\n\n'
-    # set default terminal
-    touch ~/.config/xfce4/helpers.rc
-    sed -i '/TerminalEmulator=.*/c\' ~/.config/xfce4/helpers.rc
-    echo 'TerminalEmulator=gnome-terminal' >> ~/.config/xfce4/helpers.rc
-    # disable menus in gnome terminal
-    gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
-    # disable "close terminal?" prompt
-    gsettings set org.gnome.Terminal.Legacy.Settings confirm-close false
-
-
-    printf '\n============================================================\n'
-    printf '[+] Disabling Animations\n'
-    printf '============================================================\n\n'
-    gsettings set org.gnome.desktop.interface enable-animations false
-
-
-    printf '\n============================================================\n'
-    printf '[+] Disabling Terminal Transparency\n'
-    printf '============================================================\n\n'
-    profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
-    profile=${profile:1:-1}
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$profile/" use-transparent-background false
-    # bring back minimize/maxminize buttons
-    gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
-
 
     printf '\n============================================================\n'
     printf '[+] Installing Bloodhound\n'
@@ -556,10 +543,9 @@ then
     neo4j start
 
     # install cypheroth, which automates bloodhound queries & outputs to CSV
-    cd /opt
+    cd ~/Downloads
     git clone https://github.com/seajaysec/cypheroth
-    ln -s /opt/cypheroth ~/Downloads/cypheroth
-    ln -s /opt/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
+    ln -s ~/Downloads/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
 
 
     printf '\n============================================================\n'
@@ -624,10 +610,6 @@ fi
     printf '\n============================================================\n'
     printf '[+] Cleaning Up\n'
     printf '============================================================\n\n'
-    # this removes waaayyyy more than it's supposed to
-    # I blame offsec
-    #apt-get -y autoremove
-    #apt-get -y autoclean
     updatedb
     rmdir ~/Music ~/Public ~/Videos ~/Templates ~/Desktop &>/dev/null
     gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Terminal.desktop', 'terminator.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Screenshot.desktop', 'sublime_text.desktop', 'boostnote.desktop']"
