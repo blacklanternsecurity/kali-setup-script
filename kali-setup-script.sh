@@ -182,7 +182,6 @@ printf '     - docker\n'
 printf '     - powershell\n'
 printf '     - terminator\n'
 printf '     - pip & pipenv\n'
-printf '     - mitmproxy\n'
 printf '     - patator\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
@@ -211,6 +210,7 @@ apt-get install \
     vim
 python2 -m pip install pipenv
 python3 -m pip install pipenv
+apt-get remove mitmproxy
 python3 -m pip install mitmproxy
 
 # enable and start docker
@@ -340,7 +340,7 @@ python3 -m pipenv run python setup.py install
 printf '\n============================================================\n'
 printf '[+] Enabling bash session logging\n'
 printf '============================================================\n\n'
-grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [[ -z "$UNDER_SCRIPT" && -z "$TMUX" ]]; then
+grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [[ -z "$UNDER_SCRIPT" && -z "$TMUX" && ! -z "$PS1" ]]; then
         logdir=$HOME/Logs
         if [ ! -d $logdir ]; then
                 mkdir $logdir
