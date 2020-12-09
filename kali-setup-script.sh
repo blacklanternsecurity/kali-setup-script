@@ -186,6 +186,8 @@ printf '     - patator\n'
 printf '     - vncsnapshot\n'
 printf '     - zmap\n'
 printf '     - htop\n'
+printf '     - mosh\n'
+printf '     - tmux\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
@@ -203,6 +205,8 @@ apt-get install \
     vncsnapshot \
     zmap \
     htop \
+    mosh \
+    tmux \
     nfs-kernel-server \
     dnsmasq \
     hcxtools \
@@ -212,6 +216,12 @@ python2 -m pip install pipenv
 python3 -m pip install pipenv
 apt-get remove mitmproxy
 python3 -m pip install mitmproxy
+
+# default tmux config
+cat <<EOF > /root/.tmux.conf
+set -g mouse on
+set -g history-limit 20000
+EOF
 
 # enable and start docker
 systemctl stop docker &>/dev/null
@@ -499,7 +509,6 @@ then
     printf '     - gnome-screenshot\n'
     printf '     - LibreOffice\n'
     printf '     - Remmina\n'
-    printf '     - mosh\n'
     printf '     - file explorer SMB capability\n'
     printf '============================================================\n\n'
     apt-get install \
