@@ -356,7 +356,7 @@ grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [[ -z "$UNDER_SCRIPT" && -z "$TMUX"
                 mkdir $logdir
         fi
         #gzip -q $logdir/*.log &>/dev/null
-        logfile=$logdir/$(date +%F_%H_%M_%S).$$.log
+        logfile=$logdir/$(date -u +%F_%H_%M_%S)_UTC.$$.log
         export UNDER_SCRIPT=$logfile
         script -f -q $logfile
         exit
