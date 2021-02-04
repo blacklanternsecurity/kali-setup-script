@@ -218,9 +218,15 @@ apt-get remove mitmproxy
 python3 -m pip install mitmproxy
 
 # default tmux config
-cat <<EOF > /root/.tmux.conf
+cat <<EOF > "$HOME/.tmux.conf"
 set -g mouse on
-set -g history-limit 20000
+set -g history-limit 50000
+
+# List of plugins
+set -g @plugin 'tmux-plugins/tmux-logging'
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
 EOF
 
 # enable and start docker
@@ -350,17 +356,42 @@ python3 -m pipenv run python setup.py install
 printf '\n============================================================\n'
 printf '[+] Enabling bash session logging\n'
 printf '============================================================\n\n'
-grep -q 'UNDER_SCRIPT' ~/.bashrc || echo 'if [[ -z "$UNDER_SCRIPT" && -z "$TMUX" && ! -z "$PS1" ]]; then
-        logdir=$HOME/Logs
-        if [ ! -d $logdir ]; then
-                mkdir $logdir
-        fi
-        #gzip -q $logdir/*.log &>/dev/null
-        logfile=$logdir/$(date -u +%F_%H_%M_%S)_UTC.$$.log
-        export UNDER_SCRIPT=$logfile
-        script -f -q $logfile
-        exit
-fi' >> ~/.bashrc
+
+apt-get install tmux-plugin-manager
+mkdir -p "$HOME/.tmux/plugins" 2>/dev/null
+export XDG_CONFIG_HOME="$HOME"
+export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins"
+/usr/share/tmux-plugin-manager/scripts/install_plugins.sh
+mkdir -p "$HOME/Logs" 2>/dev/null
+
+grep -q 'TMUX_LOGGING' "/etc/profile" || echo '
+logdir="$HOME/Logs"
+if [ ! -d $logdir ]; then
+    mkdir $logdir
+fi
+#gzip -q $logdir/*.log &>/dev/null
+export XDG_CONFIG_HOME="$HOME"
+export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins"
+if [[ ! -z "$TMUX" && -z "$TMUX_LOGGING" ]]; then
+    logfile="$logdir/tmux_$(date -u +%F_%H_%M_%S)_UTC.$$.log"
+    "$TMUX_PLUGIN_MANAGER_PATH/tmux-logging/scripts/start_logging.sh" "$logfile"
+    export TMUX_LOGGING="$logfile"
+fi' >> "/etc/profile"
+
+normal_log_script='
+logdir="$HOME/Logs"
+if [ ! -d $logdir ]; then
+    mkdir $logdir
+fi
+if [[ -z "$NORMAL_LOGGING" && ! -z "$PS1" && -z "$TMUX" ]]; then
+    logfile="$logdir/$(date -u +%F_%H_%M_%S)_UTC.$$.log"
+    export NORMAL_LOGGING="$logfile"
+    script -f -q "$logfile"
+    exit
+fi'
+
+grep -q 'NORMAL_LOGGING' "$HOME/.bashrc" || echo "$normal_log_script" >> "$HOME/.bashrc"
+grep -q 'NORMAL_LOGGING' "$HOME/.zshrc" || echo "$normal_log_script" >> "$HOME/.zshrc"
 
 
 printf '\n============================================================\n'
