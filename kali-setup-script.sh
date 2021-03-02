@@ -110,6 +110,9 @@ then
     gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
     gsettings set org.gnome.desktop.background picture-options scaled
     xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual1/workspace0/last-image -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual1/workspace1/last-image -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 
 
     printf '\n============================================================\n'
@@ -147,9 +150,9 @@ fi
 
 
 # install pip because FUCKING OFFSEC removed it from the kali repos
-cd /root/Downloads
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python get-pip.py
+#cd /root/Downloads
+#curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+#python get-pip.py
 
 
 printf '\n============================================================\n'
@@ -284,9 +287,7 @@ cd eaphammer
 apt-get install $(grep -vE "^\s*#" kali-dependencies.txt  | tr "\n" " ")
 chmod +x kali-setup
 # remove prompts from setup script
-sed -i 's/.*input.*update your package list.*/    if False:/g' kali-setup
-sed -i 's/.*input.*upgrade your installed packages.*/    if False:/g' kali-setup
-sed -i 's/.*apt.* install.*//g' kali-setup
+sed -i 's/.*input.*Do you wish to proceed.*/    if False:/g' kali-setup
 ./kali-setup
 ln -s ~/Downloads/eaphammer/eaphammer /usr/local/bin/eaphammer
 
@@ -365,10 +366,14 @@ export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins"
 mkdir -p "$HOME/Logs" 2>/dev/null
 
 grep -q 'TMUX_LOGGING' "/etc/profile" || echo '
+export HISTSIZE= 
+export HISTFILESIZE=
+export PROMPT_COMMAND="history -a"
+export HISTTIMEFORMAT="%F %T "
+setopt INC_APPEND_HISTORY
+
 logdir="$HOME/Logs"
-if [ ! -d $logdir ]; then
-    mkdir $logdir
-fi
+mkdir -p $logdir 2>/dev/null
 #gzip -q $logdir/*.log &>/dev/null
 export XDG_CONFIG_HOME="$HOME"
 export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins"
@@ -379,10 +384,14 @@ if [[ ! -z "$TMUX" && -z "$TMUX_LOGGING" ]]; then
 fi' >> "/etc/profile"
 
 normal_log_script='
+export HISTSIZE= 
+export HISTFILESIZE=
+export PROMPT_COMMAND="history -a"
+export HISTTIMEFORMAT="%F %T "
+setopt INC_APPEND_HISTORY
+
 logdir="$HOME/Logs"
-if [ ! -d $logdir ]; then
-    mkdir $logdir
-fi
+mkdir -p $logdir 2>/dev/null
 if [[ -z "$NORMAL_LOGGING" && ! -z "$PS1" && -z "$TMUX" ]]; then
     logfile="$logdir/$(date -u +%F_%H_%M_%S)_UTC.$$.log"
     export NORMAL_LOGGING="$logfile"
@@ -616,7 +625,7 @@ MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vn
 StartupWMClass=Firefox-esr
 StartupNotify=true
 EOF
-fi
+    fi
 
 
     printf '\n============================================================\n'
