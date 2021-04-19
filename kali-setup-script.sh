@@ -370,7 +370,7 @@ export HISTSIZE=
 export HISTFILESIZE=
 export PROMPT_COMMAND="history -a"
 export HISTTIMEFORMAT="%F %T "
-setopt INC_APPEND_HISTORY
+setopt INC_APPEND_HISTORY 2>/dev/null
 
 logdir="$HOME/Logs"
 mkdir -p $logdir 2>/dev/null
@@ -388,7 +388,7 @@ export HISTSIZE=
 export HISTFILESIZE=
 export PROMPT_COMMAND="history -a"
 export HISTTIMEFORMAT="%F %T "
-setopt INC_APPEND_HISTORY
+setopt INC_APPEND_HISTORY 2>/dev/null
 
 logdir="$HOME/Logs"
 mkdir -p $logdir 2>/dev/null
