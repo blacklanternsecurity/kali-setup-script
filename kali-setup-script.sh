@@ -225,6 +225,10 @@ cat <<EOF > "$HOME/.tmux.conf"
 set -g mouse on
 set -g history-limit 50000
 
+# set second prefix key to "CTRL + A"
+set -g prefix2 C-a
+bind C-a send-prefix -2
+
 # List of plugins
 set -g @plugin 'tmux-plugins/tmux-logging'
 
