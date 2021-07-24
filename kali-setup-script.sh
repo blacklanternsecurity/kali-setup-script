@@ -194,6 +194,7 @@ printf '     - tmux\n'
 printf '     - NFS server\n'
 printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
+printf '     - neofetch\n'
 printf '============================================================\n\n'
 apt-get install \
     realtek-rtl88xxau-dkms \
@@ -214,7 +215,8 @@ apt-get install \
     dnsmasq \
     hcxtools \
     mosh \
-    vim
+    vim \
+    neofetch
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 apt-get remove mitmproxy
